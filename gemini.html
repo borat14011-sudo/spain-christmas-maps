@@ -10,80 +10,151 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --navy:#1B3A6B;--gold:#C49A22;--parch:#F3E9CB;--parch2:#EAD9AA;
+    --navy:#1B3A6B;--gold:#C49A22;--gold-bright:#E0B53A;--parch:#F3E9CB;--parch2:#EAD9AA;
     --cream:#F9F7F2;--rust:#6E2C10;--slate:#2D4A5E;--dark:#1a1a2e;
+    --p1:#3a8b3a;--p2:#C49A22;--p3:#D97B2A;--p4:#B5371E;
+    --book:#B5371E;--xmas:#1a6b2a;
   }
-  body{font-family:'Georgia',serif;background:var(--parch);color:var(--navy);height:100vh;display:flex;flex-direction:column}
+  body{font-family:'Georgia',serif;background:var(--parch);color:var(--navy);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
   /* ── HEADER ── */
-  header{background:var(--navy);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
-  header h1{color:var(--gold);font-size:1.25rem;font-weight:bold;letter-spacing:.03em}
-  header span{color:#aabbdd;font-size:.8rem}
+  header{background:var(--navy);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+  .header-title{display:flex;flex-direction:column}
+  header h1{color:var(--gold);font-size:1.25rem;font-weight:bold;letter-spacing:.03em;line-height:1.1}
+  .header-sub{color:#aabbdd;font-size:.72rem;margin-top:2px;font-style:italic;letter-spacing:.02em}
   .legend{margin-left:auto;display:flex;gap:12px;align-items:center;font-size:.75rem}
   .leg{display:flex;align-items:center;gap:4px;color:#ddd}
   .leg-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.4)}
 
   /* ── TABS ── */
   .tabs{display:flex;background:var(--navy);border-bottom:3px solid var(--gold);flex-shrink:0}
-  .tab{padding:10px 28px;cursor:pointer;color:#8899bb;font-size:.9rem;letter-spacing:.05em;transition:.2s;border:none;background:none;font-family:inherit}
-  .tab:hover{color:var(--gold)}
-  .tab.active{color:var(--gold);background:rgba(196,154,34,.12);border-bottom:3px solid var(--gold);margin-bottom:-3px}
+  .tab{padding:14px 28px;cursor:pointer;color:#8899bb;font-size:.92rem;letter-spacing:.04em;transition:.2s;border:none;background:none;font-family:inherit;position:relative}
+  .tab:hover{color:var(--gold);background:rgba(196,154,34,.05)}
+  .tab.active{color:var(--gold);background:rgba(196,154,34,.14);border-bottom:3px solid var(--gold);margin-bottom:-3px}
+  .tab-count{display:inline-block;margin-left:6px;background:rgba(196,154,34,.2);color:var(--gold);font-size:.7rem;padding:1px 7px;border-radius:10px;font-weight:bold;vertical-align:1px}
+  .tab.active .tab-count{background:var(--gold);color:var(--navy)}
 
   /* ── MAIN BODY ── */
-  .body{display:flex;flex:1;overflow:hidden}
+  .body{display:flex;flex:1;overflow:hidden;position:relative}
 
   /* ── SIDEBAR ── */
-  .sidebar{width:300px;background:var(--cream);border-right:1px solid var(--parch2);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
-  .sidebar-head{padding:12px 14px;background:var(--parch);border-bottom:1px solid var(--parch2)}
-  .sidebar-head h3{font-size:.8rem;color:var(--navy);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-  .filters{display:flex;flex-wrap:wrap;gap:6px}
-  .filter-btn{padding:3px 9px;border-radius:12px;border:1px solid var(--parch2);background:white;color:var(--navy);font-size:.72rem;cursor:pointer;transition:.15s}
-  .filter-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy)}
-  .filter-btn:hover:not(.active){border-color:var(--navy)}
-  .search-box{width:100%;margin-top:8px;padding:5px 10px;border:1px solid var(--parch2);border-radius:6px;font-size:.8rem;background:white;color:var(--navy)}
-  .search-box:focus{outline:none;border-color:var(--navy)}
-  .sidebar-count{font-size:.7rem;color:#888;margin-top:4px}
+  .sidebar{width:320px;background:var(--cream);border-right:1px solid var(--parch2);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;box-shadow:1px 0 6px rgba(0,0,0,.04)}
+  .sidebar-head{padding:12px 14px 10px;background:var(--parch);border-bottom:1px solid var(--parch2)}
+  .sidebar-head h3{font-size:.78rem;color:var(--navy);text-transform:uppercase;letter-spacing:.1em;margin-bottom:9px;font-weight:bold}
+  .filters{display:flex;flex-wrap:wrap;gap:5px}
+  .filter-btn{padding:4px 10px;border-radius:14px;border:1px solid var(--parch2);background:white;color:var(--navy);font-size:.72rem;cursor:pointer;transition:.15s;font-family:inherit;font-weight:500}
+  .filter-btn.active{background:var(--navy);color:var(--gold);border-color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .filter-btn:hover:not(.active){border-color:var(--navy);background:#fafafa}
+  .search-box{width:100%;margin-top:9px;padding:6px 11px;border:1px solid var(--parch2);border-radius:6px;font-size:.82rem;background:white;color:var(--navy);font-family:inherit}
+  .search-box:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 2px rgba(27,58,107,.1)}
+  .sidebar-count{font-size:.7rem;color:#888;margin-top:5px;letter-spacing:.02em}
 
-  .rest-list{overflow-y:auto;flex:1}
-  .rest-item{padding:10px 14px;border-bottom:1px solid var(--parch);cursor:pointer;transition:.15s}
-  .rest-item:hover{background:var(--parch)}
-  .rest-item.focused{background:#e8f0fb;border-left:3px solid var(--navy)}
-  .rest-name{font-size:.85rem;font-weight:bold;color:var(--navy)}
-  .rest-meta{font-size:.73rem;color:#666;margin-top:2px;display:flex;gap:6px;flex-wrap:wrap}
-  .pill{display:inline-block;padding:1px 7px;border-radius:10px;font-size:.68rem;font-weight:bold}
+  .rest-list{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch}
+
+  /* Restaurant card */
+  .rest-item{
+    padding:11px 14px 11px 17px;border-bottom:1px solid var(--parch);cursor:pointer;
+    transition:transform .15s, box-shadow .15s, background .15s;
+    border-left:4px solid var(--parch2);position:relative;background:white
+  }
+  .rest-item:hover{background:#fdfaf0;transform:translateX(1px);box-shadow:0 2px 6px rgba(0,0,0,.06);z-index:1}
+  .rest-item.focused{
+    background:linear-gradient(90deg, rgba(196,154,34,.12), rgba(255,255,255,.5) 70%);
+    border-left-color:var(--navy) !important;
+    box-shadow:inset 0 0 0 1px rgba(27,58,107,.15), 0 2px 8px rgba(27,58,107,.08);
+  }
+  .rest-item.focused .rest-name{color:var(--navy)}
+  .rest-item.book-tint{background:linear-gradient(90deg, rgba(181,55,30,.06), white 60%)}
+  .rest-item.book-tint:hover{background:linear-gradient(90deg, rgba(181,55,30,.1), #fdfaf0 60%)}
+  .rest-item.price-1{border-left-color:var(--p1)}
+  .rest-item.price-2{border-left-color:var(--p2)}
+  .rest-item.price-3{border-left-color:var(--p3)}
+  .rest-item.price-4{border-left-color:var(--p4)}
+
+  .rest-name{font-size:.95rem;font-weight:bold;color:var(--navy);letter-spacing:.005em;line-height:1.25}
+  .rest-meta{font-size:.72rem;color:#666;margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .rest-cuisine{color:#777;font-style:italic;font-size:.74rem}
+
+  /* Walk bar */
+  .walk-bar{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:#5a6878;margin-top:5px}
+  .walk-bar-track{display:inline-block;width:42px;height:4px;background:#e7e0c4;border-radius:2px;overflow:hidden;vertical-align:middle}
+  .walk-bar-fill{display:block;height:100%;background:linear-gradient(90deg, #4caf50, #C49A22 60%, #B5371E);border-radius:2px}
+
+  /* Pills */
+  .pill{display:inline-block;padding:2px 8px;border-radius:11px;font-size:.68rem;font-weight:bold;letter-spacing:.02em;line-height:1.4}
   .pill-price{background:var(--parch2);color:var(--navy)}
-  .pill-book{background:#b00;color:white}
-  .pill-xmas{background:#1a6b2a;color:white}
+  .pill-price-1{background:#dff0d8;color:#2d6a2d}
+  .pill-price-2{background:#fcf2d4;color:#7a5a10}
+  .pill-price-3{background:#fde0c6;color:#8a3f10}
+  .pill-price-4{background:#f6d4cc;color:#7a2010}
+  .pill-book{background:linear-gradient(135deg, #C0392B, #8B1E14);color:white;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+  .pill-xmas{background:linear-gradient(135deg, #1f7a30, #135020);color:white}
   .pill-stars{background:var(--parch);color:var(--navy)}
+  .pill-rating{background:#fff7d6;color:#7a5a10;border:1px solid #ecd98a}
 
   /* ── MAP ── */
-  #map{flex:1}
+  #map{flex:1;background:#dcd2b0}
+
+  /* Sidebar toggle button (mobile) */
+  .sidebar-toggle{
+    display:none;position:absolute;top:10px;left:10px;z-index:1000;
+    background:var(--navy);color:var(--gold);border:2px solid var(--gold);
+    padding:8px 14px;border-radius:22px;font-family:inherit;font-size:.82rem;
+    font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25);
+    letter-spacing:.02em;transition:.15s
+  }
+  .sidebar-toggle:active{transform:scale(.96)}
 
   /* ── POPUPS ── */
-  .pop{min-width:210px;max-width:270px;font-family:Georgia,serif}
-  .pop-name{font-size:.95rem;font-weight:bold;color:var(--gold);margin-bottom:4px}
-  .pop-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
-  .pop-tip{font-size:.78rem;color:#444;font-style:italic;line-height:1.4}
-  .pop-xmas{margin-top:5px;font-size:.75rem;color:#1a6b2a;background:#edf7ed;border-left:3px solid #1a6b2a;padding:3px 6px}
-  .pop-walk{font-size:.75rem;color:#555;margin-top:4px}
-  .leaflet-popup-content-wrapper{border-radius:6px;padding:0;overflow:hidden}
-  .leaflet-popup-content{margin:12px 14px;font-family:Georgia,serif}
-  .pop-header{background:var(--navy);padding:8px 12px;margin:-12px -14px 10px}
-  .pop-hotel-name{font-size:.95rem;font-weight:bold;color:var(--gold)}
-  .pop-hotel-sub{font-size:.75rem;color:#aabbdd}
-  .pop-site-name{font-size:.95rem;font-weight:bold;color:var(--navy)}
-  .pop-addr{font-size:.75rem;color:#666;margin-top:3px}
+  .leaflet-popup-content-wrapper{border-radius:10px;padding:0;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.22)}
+  .leaflet-popup-content{margin:0;font-family:Georgia,serif;width:auto !important}
+  .leaflet-popup-tip{box-shadow:0 4px 14px rgba(0,0,0,.15)}
+
+  .pop{min-width:240px;max-width:300px;font-family:Georgia,serif}
+  .pop-inner{padding:0 14px 12px}
+  .pop-header{
+    background:linear-gradient(135deg, var(--navy) 0%, #2c4f8a 100%);
+    padding:11px 14px 10px;margin:0;
+    border-bottom:3px solid var(--gold);
+  }
+  .pop-name{font-size:1.08rem;font-weight:bold;color:var(--gold);line-height:1.2;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .pop-name-sub{color:#cdd9ec;font-size:.7rem;margin-top:3px;font-style:italic}
+  .pop-meta{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 8px;align-items:center}
+  .pop-tip{font-size:.83rem;color:#3a3a3a;font-style:italic;line-height:1.45;margin-top:4px}
+  .pop-xmas{
+    margin-top:9px;font-size:.76rem;color:#135020;background:#edf7ed;
+    border-left:4px solid var(--xmas);padding:6px 9px;border-radius:0 4px 4px 0;line-height:1.4
+  }
+  .pop-xmas strong{display:block;color:var(--xmas);font-size:.72rem;margin-bottom:2px;letter-spacing:.04em;text-transform:uppercase;font-style:normal}
+  .pop-walk-row{margin-top:8px;display:flex;align-items:center;gap:6px;font-size:.78rem;color:#555}
+  .pop-book-strip{
+    margin:9px -14px 0;padding:6px 14px;
+    background:linear-gradient(135deg, #C0392B 0%, #8B1E14 100%);
+    color:white;font-size:.78rem;font-weight:bold;letter-spacing:.06em;
+    text-transform:uppercase;text-align:center
+  }
+  .pop-actions{display:flex;gap:6px;margin-top:11px;padding-top:9px;border-top:1px solid #e3d9b8}
+  .pop-btn{
+    flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+    padding:7px 8px;border-radius:6px;font-size:.74rem;font-weight:bold;
+    text-decoration:none;text-align:center;transition:.15s;letter-spacing:.02em;
+    font-family:Georgia,serif
+  }
+  .pop-btn-gmaps{background:#f4f1e3;color:var(--navy);border:1px solid #d8c890}
+  .pop-btn-gmaps:hover{background:var(--navy);color:var(--gold);border-color:var(--navy)}
+  .pop-btn-dir{background:linear-gradient(135deg, var(--gold), #a07810);color:white;border:1px solid #8a6710}
+  .pop-btn-dir:hover{background:linear-gradient(135deg, #d6a83a, var(--gold));color:white}
+
+  .pop-hotel-name{font-size:1.05rem;font-weight:bold;color:var(--gold);line-height:1.2}
+  .pop-hotel-sub{font-size:.72rem;color:#aabbdd;margin-top:3px;font-style:italic}
+  .pop-site-header{background:linear-gradient(135deg, #6E2C10, #4a1c08);padding:11px 14px 10px;border-bottom:3px solid var(--gold)}
+  .pop-site-name{font-size:1.05rem;font-weight:bold;color:#f3e9cb;line-height:1.2}
+  .pop-site-sub{font-size:.7rem;color:#e5c4a8;margin-top:3px;font-style:italic}
+  .pop-addr{font-size:.76rem;color:#555;margin-top:8px;line-height:1.4}
+  .pop-addr-icon{color:var(--gold);font-style:normal}
 
   /* ── No-results ── */
-  .no-results{padding:20px;text-align:center;color:#999;font-size:.82rem}
-
-  /* ── Gmaps link in popups ── */
-  .pop-gmaps{
-    display:inline-block;margin-top:8px;padding-top:6px;
-    border-top:1px solid #e3d9b8;font-size:.72rem;
-    color:var(--navy);text-decoration:none;font-style:italic
-  }
-  .pop-gmaps:hover{color:var(--gold);text-decoration:underline}
+  .no-results{padding:24px 20px;text-align:center;color:#999;font-size:.85rem;font-style:italic}
 
   /* ── Version switcher ── */
   .version-switcher{
@@ -105,30 +176,62 @@
   .version-switcher a.current{opacity:1;background:var(--navy);color:var(--gold)}
 
   /* ── Clusters ── */
-  .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(196,154,34,.25)}
-  .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:var(--gold);color:var(--navy);font-weight:bold}
+  .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(196,154,34,.3) !important}
+  .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{
+    background:linear-gradient(135deg, var(--gold-bright), var(--gold)) !important;
+    color:var(--navy) !important;font-weight:bold !important;
+    border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3)
+  }
+  .cluster-parch{display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--navy)}
 
   /* ── Mobile ── */
   @media (max-width: 700px) {
     header{padding:10px 14px;gap:10px}
     header h1{font-size:1.05rem}
+    .header-sub{font-size:.65rem}
     .legend{display:none}
-    .tabs .tab{padding:10px 16px;font-size:.82rem;letter-spacing:0}
+    .tabs .tab{padding:13px 14px;font-size:.85rem;letter-spacing:0;flex:1;text-align:center}
+    .tab-count{font-size:.65rem;padding:1px 6px;margin-left:4px}
+    .version-switcher{padding:5px 14px;font-size:.68rem}
+    .version-switcher .vs-label{margin-right:8px}
+    .version-switcher a{padding:3px 8px;margin-right:2px}
+
     .body{flex-direction:column}
-    .sidebar{width:100%;height:44vh;border-right:none;border-top:2px solid var(--parch2);flex-shrink:0}
-    #map{flex:1;min-height:0}
-    .filters{gap:5px}
+    #map{flex:1;min-height:0;order:1}
+    .sidebar{
+      width:100%;height:45vh;border-right:none;border-top:none;
+      order:2;flex-shrink:0;position:relative;
+      box-shadow:0 -2px 12px rgba(0,0,0,.18);
+      border-radius:14px 14px 0 0;margin-top:-14px;z-index:5;
+      background:var(--cream);
+      transition:height .25s ease, transform .25s ease
+    }
+    .sidebar::before{
+      content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);
+      width:42px;height:4px;background:var(--parch2);border-radius:3px;
+      pointer-events:none
+    }
+    .sidebar-head{padding-top:16px}
+    .sidebar.collapsed{height:0 !important;border:none;box-shadow:none;overflow:hidden}
+    .sidebar-toggle{display:block}
+
+    .filters{gap:4px}
     .filter-btn{font-size:.68rem;padding:3px 8px}
-    .rest-item{padding:8px 12px}
-    .pop{min-width:180px;max-width:calc(90vw - 40px)}
+    .rest-item{padding:9px 12px 9px 14px}
+    .rest-name{font-size:.9rem}
+    .pop{min-width:220px;max-width:calc(94vw - 40px)}
+    .pop-name{font-size:1rem}
+    .pop-btn{font-size:.72rem;padding:8px 6px}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Spain Christmas 2026</h1>
-  <span>Interactive Maps</span>
+  <div class="header-title">
+    <h1>Spain Christmas 2026</h1>
+    <div class="header-sub">Tap a pin or browse restaurants below</div>
+  </div>
   <div class="legend">
     <div class="leg"><div class="leg-dot" style="background:#C49A22"></div>Restaurant</div>
     <div class="leg"><div class="leg-dot" style="background:#1B6CC8"></div>Hotel</div>
@@ -144,13 +247,14 @@
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="switchCity('Seville',this)">✈ Seville</button>
-  <button class="tab" onclick="switchCity('Segovia',this)">🏰 Segovia</button>
-  <button class="tab" onclick="switchCity('Madrid',this)">🌆 Madrid</button>
+  <button class="tab active" data-city="Seville" onclick="switchCity('Seville',this)">✈ Seville <span class="tab-count" id="count-Seville">0</span></button>
+  <button class="tab" data-city="Segovia" onclick="switchCity('Segovia',this)">🏰 Segovia <span class="tab-count" id="count-Segovia">0</span></button>
+  <button class="tab" data-city="Madrid" onclick="switchCity('Madrid',this)">🌆 Madrid <span class="tab-count" id="count-Madrid">0</span></button>
 </div>
 
 <div class="body">
-  <div class="sidebar">
+  <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">☰ Restaurants <span id="toggle-count">(0)</span></button>
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-head">
       <h3>Restaurants <span id="city-name-lbl">· Seville</span></h3>
       <div class="filters" id="price-filters">
@@ -184,13 +288,22 @@ const CITY_CENTRES = {
 };
 const CITY_COLORS = {Seville:'#6E2C10',Segovia:'#2D4A5E',Madrid:'#1B3A6B'};
 
+// Hotel anchors for "Directions from hotel" links
+const HOTEL_ANCHORS = {
+  Seville: {lat:37.3858678, lng:-5.9909586, name:"Hotel Casa 1800"},
+  Segovia: {lat:40.9521141, lng:-4.1231091, name:"Áurea Convento Capuchinos"},
+  Madrid:  {lat:40.409962,  lng:-3.692674,  name:"NH Madrid Nacional"},
+};
+
+const isMobile = () => window.matchMedia('(max-width: 700px)').matches;
+
 let currentCity = 'Seville';
 let filterPrice = 'ALL';
 let markerMap = {};  // stem → leaflet marker
 let restaurantLayers = {};
 let hotelLayers = {};
 let siteLayers = {};
-let clusterGroup = null;
+let focusedStem = null;
 
 // ── Map init ──────────────────────────────────────────────────────────────
 const map = L.map('map', {zoomControl:true}).setView([37.3891,-5.9845],14);
@@ -200,61 +313,112 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 }).addTo(map);
 
 // ── Custom icons ──────────────────────────────────────────────────────────
-function makeIcon(emoji, bg, size=30){
+function makeIcon(emoji, bg, size=30, extra=''){
   return L.divIcon({
-    html:`<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:${size*0.5}px;box-shadow:0 2px 6px rgba(0,0,0,.35)">${emoji}</div>`,
+    html:`<div style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};border:2px solid rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:${size*0.5}px;box-shadow:0 2px 6px rgba(0,0,0,.4);${extra}">${emoji}</div>`,
     className:'',iconSize:[size,size],iconAnchor:[size/2,size/2],popupAnchor:[0,-size/2]
   });
 }
 const ICONS = {
-  restaurant: (mustBook) => makeIcon(mustBook?'★':'🍽','#C49A22',28),
+  restaurant: (mustBook) => makeIcon(
+    mustBook?'★':'🍽',
+    mustBook?'linear-gradient(135deg,#E0B53A,#a07810)':'#C49A22',
+    mustBook?30:28,
+    mustBook?'color:white;font-weight:bold;text-shadow:0 1px 2px rgba(0,0,0,.3)':''
+  ),
   hotel: makeIcon('🏨','#1B6CC8',32),
   site:  makeIcon('🏛','#C0392B',28),
 };
 
-// ── Popup builders ────────────────────────────────────────────────────────
-function gmapsLink(name, city){
-  const q = encodeURIComponent(name + ' ' + city + ' Spain');
-  return `<a class="pop-gmaps" target="_blank" rel="noopener"
-    href="https://www.google.com/maps/search/?api=1&query=${q}">🗺 Open in Google Maps</a>`;
+// ── Helpers ───────────────────────────────────────────────────────────────
+function priceClass(price){
+  if(price==='€') return 1;
+  if(price==='€€') return 2;
+  if(price==='€€€') return 3;
+  if(price==='€€€€') return 4;
+  return 0;
 }
 
+function gmapsSearchLink(r){
+  // For a restaurant: use name + formatted_address for high accuracy
+  const addr = r.formatted_address || '';
+  const q = encodeURIComponent((r.name + ', ' + addr).trim().replace(/^,\s*/,''));
+  return `https://www.google.com/maps/search/?api=1&query=${q}`;
+}
+
+function directionsLink(r){
+  const h = HOTEL_ANCHORS[r.city];
+  if(!h) return null;
+  return `https://www.google.com/maps/dir/?api=1&origin=${h.lat},${h.lng}&destination=${r.lat},${r.lng}&travelmode=walking`;
+}
+
+// ── Popup builders ────────────────────────────────────────────────────────
 function restPopup(r){
-  const stars = '⭐'.repeat(Math.round(r.rating||0));
-  const bookBadge = r.must_book ? '<span class="pill pill-book">★ BOOK NOW</span>' : '';
-  const xmas = r.christmas_note ? `<div class="pop-xmas">🎄 ${r.christmas_note}</div>` : '';
+  const pc = priceClass(r.price);
+  const bookStrip = r.must_book ? `<div class="pop-book-strip">★ Reservation Recommended</div>` : '';
+  const xmas = r.christmas_note ? `<div class="pop-xmas"><strong>🎄 Christmas tip</strong>${r.christmas_note}</div>` : '';
+  const gmaps = gmapsSearchLink(r);
+  const dir = directionsLink(r);
+  const dirBtn = dir
+    ? `<a class="pop-btn pop-btn-dir" target="_blank" rel="noopener" href="${dir}">🧭 Walking directions</a>`
+    : '';
   return `<div class="pop">
-    <div class="pop-header"><div class="pop-name">${r.name}</div></div>
-    <div class="pop-meta">
-      <span class="pill pill-price">${r.price||''}</span>
-      <span class="pill pill-stars">${r.rating} ⭐</span>
-      <span class="pill" style="background:#eee;color:#333">${r.cuisine}</span>
-      ${bookBadge}
+    <div class="pop-header">
+      <div class="pop-name">${r.name}</div>
+      <div class="pop-name-sub">${r.cuisine||''} · ${r.city}</div>
     </div>
-    <div class="pop-tip">${r.tip}</div>
-    ${xmas}
-    <div class="pop-walk">🚶 ${r.walk_min} min from hotel</div>
-    ${gmapsLink(r.name, r.city)}
+    ${bookStrip}
+    <div class="pop-inner">
+      <div class="pop-meta">
+        <span class="pill pill-price-${pc}">${r.price||''}</span>
+        <span class="pill pill-rating">★ ${r.rating}</span>
+        <span class="pill" style="background:#f0e8d0;color:#5a4a20">${r.cuisine||''}</span>
+        <span class="pill" style="background:#e3ecf7;color:var(--navy)">🚶 ${r.walk_min} min</span>
+      </div>
+      <div class="pop-tip">${r.tip||''}</div>
+      ${xmas}
+      <div class="pop-actions">
+        <a class="pop-btn pop-btn-gmaps" target="_blank" rel="noopener" href="${gmaps}">🗺 Google Maps</a>
+        ${dirBtn}
+      </div>
+    </div>
   </div>`;
 }
 
 function hotelPopup(h){
+  const q = encodeURIComponent((h.name + ', ' + (h.formatted_address||'')).trim().replace(/^,\s*/,''));
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${q}`;
   return `<div class="pop">
     <div class="pop-header">
       <div class="pop-hotel-name">${h.name}</div>
       <div class="pop-hotel-sub">Your hotel · ${h.city}</div>
     </div>
-    <div class="pop-addr">📍 ${h.formatted_address||''}</div>
-    ${gmapsLink(h.name, h.city)}
+    <div class="pop-inner">
+      <div class="pop-addr"><span class="pop-addr-icon">📍</span> ${h.formatted_address||''}</div>
+      <div class="pop-actions">
+        <a class="pop-btn pop-btn-gmaps" target="_blank" rel="noopener" href="${gmaps}">🗺 Open in Google Maps</a>
+      </div>
+    </div>
   </div>`;
 }
 
 function sitePopup(s){
+  const q = encodeURIComponent((s.name + ', ' + (s.formatted_address||'')).trim().replace(/^,\s*/,''));
+  const gmaps = `https://www.google.com/maps/search/?api=1&query=${q}`;
+  const h = HOTEL_ANCHORS[s.city];
+  const dir = h ? `https://www.google.com/maps/dir/?api=1&origin=${h.lat},${h.lng}&destination=${s.lat},${s.lng}&travelmode=walking` : null;
+  const dirBtn = dir ? `<a class="pop-btn pop-btn-dir" target="_blank" rel="noopener" href="${dir}">🧭 Walk from hotel</a>` : '';
   return `<div class="pop">
-    <div style="padding:6px 0">
+    <div class="pop-site-header">
       <div class="pop-site-name">🏛 ${s.name}</div>
-      <div class="pop-addr" style="margin-top:4px">📍 ${s.formatted_address||''}</div>
-      ${gmapsLink(s.name, s.city)}
+      <div class="pop-site-sub">${s.city}</div>
+    </div>
+    <div class="pop-inner">
+      <div class="pop-addr"><span class="pop-addr-icon">📍</span> ${s.formatted_address||''}</div>
+      <div class="pop-actions">
+        <a class="pop-btn pop-btn-gmaps" target="_blank" rel="noopener" href="${gmaps}">🗺 Google Maps</a>
+        ${dirBtn}
+      </div>
     </div>
   </div>`;
 }
@@ -262,34 +426,40 @@ function sitePopup(s){
 // ── Build all layers ──────────────────────────────────────────────────────
 function buildLayers(){
   ['Seville','Segovia','Madrid'].forEach(city=>{
-    // Restaurant cluster group
     const cg = L.markerClusterGroup({
-      maxClusterRadius:50,
+      maxClusterRadius: isMobile() ? 70 : 50,
+      chunkedLoading: true,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
       iconCreateFunction(cluster){
         const n=cluster.getChildCount();
-        return L.divIcon({html:`<div style="width:36px;height:36px;border-radius:50%;background:var(--gold);border:2px solid white;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:bold;color:var(--navy)">${n}</div>`,className:'',iconSize:[36,36]});
+        const size = n < 10 ? 38 : n < 25 ? 44 : 52;
+        return L.divIcon({
+          html:`<div class="cluster-parch" style="width:${size}px;height:${size}px;border-radius:50%;background:linear-gradient(135deg,#E0B53A,#C49A22);border:3px solid #F3E9CB;font-size:${size>=44?'.9rem':'.78rem'};box-shadow:0 3px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.5)">${n}</div>`,
+          className:'',iconSize:[size,size]
+        });
       }
     });
     RESTAURANTS.filter(r=>r.city===city&&r.lat).forEach(r=>{
       const m = L.marker([r.lat,r.lng],{icon:ICONS.restaurant(r.must_book)})
-        .bindPopup(restPopup(r),{maxWidth:280});
+        .bindPopup(restPopup(r),{maxWidth:320, minWidth:260});
       m._restStem = r.stem;
+      m._city = city;
+      m._inCluster = true;
       cg.addLayer(m);
-      markerMap[r.stem] = m;
+      markerMap[r.stem] = {marker:m, cluster:cg};
     });
     restaurantLayers[city] = cg;
 
-    // Hotels
     const hl = L.layerGroup();
     HOTELS.filter(h=>h.city===city&&h.lat).forEach(h=>{
-      L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:260}).addTo(hl);
+      L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300}).addTo(hl);
     });
     hotelLayers[city] = hl;
 
-    // Sites
     const sl = L.layerGroup();
     SITES.filter(s=>s.city===city&&s.lat).forEach(s=>{
-      L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:260}).addTo(sl);
+      L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300}).addTo(sl);
     });
     siteLayers[city] = sl;
   });
@@ -299,7 +469,6 @@ function buildLayers(){
 function switchCity(city, btn){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  // Remove old layers
   ['Seville','Segovia','Madrid'].forEach(c=>{
     if(restaurantLayers[c]) map.removeLayer(restaurantLayers[c]);
     if(hotelLayers[c])      map.removeLayer(hotelLayers[c]);
@@ -307,12 +476,12 @@ function switchCity(city, btn){
   });
   currentCity = city;
   filterPrice = 'ALL';
+  focusedStem = null;
   document.querySelectorAll('#price-filters .filter-btn').forEach(b=>b.classList.remove('active'));
   document.querySelector('[data-price="ALL"]').classList.add('active');
   document.getElementById('search-box').value='';
   document.getElementById('city-name-lbl').textContent = '· '+city;
 
-  // Add new layers
   restaurantLayers[city].addTo(map);
   hotelLayers[city].addTo(map);
   siteLayers[city].addTo(map);
@@ -330,55 +499,155 @@ function setFilter(type, val, btn){
   renderSidebar();
 }
 
-function getFiltered(){
+function passesFilter(r){
+  if(r.city !== currentCity) return false;
   const q = (document.getElementById('search-box').value||'').toLowerCase();
-  return RESTAURANTS.filter(r=>{
-    if(r.city !== currentCity) return false;
-    if(filterPrice==='BOOK'&&!r.must_book) return false;
-    if(filterPrice==='XMAS'&&!r.christmas_note) return false;
-    if(filterPrice!=='ALL'&&filterPrice!=='BOOK'&&filterPrice!=='XMAS'&&r.price!==filterPrice) return false;
-    if(q&&!r.name.toLowerCase().includes(q)&&!(r.cuisine||'').toLowerCase().includes(q)) return false;
-    return true;
+  if(filterPrice==='BOOK' && !r.must_book) return false;
+  if(filterPrice==='XMAS' && !r.christmas_note) return false;
+  if(filterPrice!=='ALL' && filterPrice!=='BOOK' && filterPrice!=='XMAS' && r.price!==filterPrice) return false;
+  if(q && !r.name.toLowerCase().includes(q) && !(r.cuisine||'').toLowerCase().includes(q)) return false;
+  return true;
+}
+
+function getFiltered(){
+  return RESTAURANTS.filter(passesFilter);
+}
+
+// Sync map markers with sidebar filter
+function syncMarkers(){
+  const cg = restaurantLayers[currentCity];
+  if(!cg) return;
+  RESTAURANTS.filter(r=>r.city===currentCity&&r.lat).forEach(r=>{
+    const entry = markerMap[r.stem];
+    if(!entry) return;
+    const should = passesFilter(r);
+    if(should && !entry.marker._inCluster){
+      cg.addLayer(entry.marker);
+      entry.marker._inCluster = true;
+    } else if(!should && entry.marker._inCluster){
+      cg.removeLayer(entry.marker);
+      entry.marker._inCluster = false;
+    }
   });
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────
-let focusedStem = null;
+function walkBar(min){
+  // 0-30+ minutes mapped to 0-100% fill
+  const pct = Math.min(100, Math.max(8, (min/25)*100));
+  return `<span class="walk-bar" title="${min} min walk from hotel">
+    🚶 ${min}min
+    <span class="walk-bar-track"><span class="walk-bar-fill" style="width:${pct}%"></span></span>
+  </span>`;
+}
+
 function renderSidebar(){
   const items = getFiltered();
   const el = document.getElementById('rest-list');
-  document.getElementById('sidebar-count').textContent = items.length + ' restaurant' + (items.length!==1?'s':'');
-  if(!items.length){ el.innerHTML='<div class="no-results">No restaurants match your filters.</div>'; return; }
-  el.innerHTML = items.map(r=>`
-    <div class="rest-item${focusedStem===r.stem?' focused':''}" onclick="focusRest('${r.stem}')" data-stem="${r.stem}">
+  const countTxt = items.length + ' restaurant' + (items.length!==1?'s':'');
+  document.getElementById('sidebar-count').textContent = countTxt;
+  const tc = document.getElementById('toggle-count');
+  if(tc) tc.textContent = '('+items.length+')';
+
+  if(!items.length){
+    el.innerHTML='<div class="no-results">No restaurants match your filters.<br><span style="font-size:.75rem">Try clearing the search or filters.</span></div>';
+    syncMarkers();
+    return;
+  }
+  el.innerHTML = items.map(r=>{
+    const pc = priceClass(r.price);
+    const focused = focusedStem===r.stem;
+    const classes = [
+      'rest-item',
+      'price-'+pc,
+      r.must_book?'book-tint':'',
+      focused?'focused':''
+    ].filter(Boolean).join(' ');
+    return `
+    <div class="${classes}" onclick="focusRest('${r.stem}')" data-stem="${r.stem}">
       <div class="rest-name">${r.name}</div>
       <div class="rest-meta">
-        <span class="pill pill-price">${r.price}</span>
-        <span>⭐ ${r.rating}</span>
-        <span style="color:#888">${r.cuisine}</span>
-        ${r.must_book?'<span class="pill pill-book">Book</span>':''}
-        ${r.christmas_note?'<span class="pill pill-xmas">🎄</span>':''}
+        <span class="pill pill-price-${pc}">${r.price}</span>
+        <span class="pill pill-rating">★ ${r.rating}</span>
+        ${r.must_book?'<span class="pill pill-book">★ Book</span>':''}
+        ${r.christmas_note?'<span class="pill pill-xmas">🎄 Xmas</span>':''}
       </div>
+      <div class="rest-meta" style="margin-top:3px">
+        <span class="rest-cuisine">${r.cuisine||''}</span>
+      </div>
+      ${walkBar(r.walk_min)}
     </div>
-  `).join('');
+  `}).join('');
+  syncMarkers();
 }
 
 function focusRest(stem){
   focusedStem = stem;
   renderSidebar();
-  const m = markerMap[stem];
-  if(!m) return;
-  // Ensure cluster is expanded
+  const entry = markerMap[stem];
+  if(!entry) return;
   const r = RESTAURANTS.find(x=>x.stem===stem);
-  if(r&&r.lat) map.setView([r.lat,r.lng],17,{animate:true,duration:.6});
-  setTimeout(()=>m.openPopup(),400);
+  if(!r||!r.lat) return;
+
+  // Scroll sidebar to the focused item
+  setTimeout(()=>{
+    const el = document.querySelector('.rest-item[data-stem="'+stem+'"]');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 10);
+
+  map.setView([r.lat,r.lng], 17, {animate:true, duration:.6});
+  setTimeout(()=>{
+    const cg = restaurantLayers[r.city];
+    if(cg && entry.marker._inCluster && cg.zoomToShowLayer){
+      cg.zoomToShowLayer(entry.marker, ()=>entry.marker.openPopup());
+    } else {
+      entry.marker.openPopup();
+    }
+  }, 420);
 }
+
+// ── Tab counts ────────────────────────────────────────────────────────────
+function updateTabCounts(){
+  ['Seville','Segovia','Madrid'].forEach(city=>{
+    const n = RESTAURANTS.filter(r=>r.city===city&&r.lat).length;
+    const el = document.getElementById('count-'+city);
+    if(el) el.textContent = n;
+  });
+}
+
+// ── Mobile sidebar toggle ────────────────────────────────────────────────
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle');
+  sb.classList.toggle('collapsed');
+  btn.firstChild.textContent = sb.classList.contains('collapsed') ? '☰ Restaurants ' : '✕ Hide list ';
+}
+
+// When the map is tapped on mobile, ensure the sidebar reappears for next interaction
+map.on('popupopen', (e)=>{
+  if(!isMobile()) return;
+  // Try to identify which restaurant was opened via its marker, and scroll sidebar
+  const marker = e.popup._source;
+  if(marker && marker._restStem){
+    focusedStem = marker._restStem;
+    // re-render without re-focusing the map
+    const items = getFiltered();
+    const el = document.getElementById('rest-list');
+    // Just update focused class without full rerender
+    document.querySelectorAll('.rest-item').forEach(it=>{
+      it.classList.toggle('focused', it.dataset.stem===marker._restStem);
+    });
+    const target = document.querySelector('.rest-item[data-stem="'+marker._restStem+'"]');
+    if(target) target.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────
 buildLayers();
 restaurantLayers['Seville'].addTo(map);
 hotelLayers['Seville'].addTo(map);
 siteLayers['Seville'].addTo(map);
+updateTabCounts();
 renderSidebar();
 </script>
 </body>
