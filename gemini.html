@@ -77,6 +77,33 @@
   /* ── No-results ── */
   .no-results{padding:20px;text-align:center;color:#999;font-size:.82rem}
 
+  /* ── Gmaps link in popups ── */
+  .pop-gmaps{
+    display:inline-block;margin-top:8px;padding-top:6px;
+    border-top:1px solid #e3d9b8;font-size:.72rem;
+    color:var(--navy);text-decoration:none;font-style:italic
+  }
+  .pop-gmaps:hover{color:var(--gold);text-decoration:underline}
+
+  /* ── Version switcher ── */
+  .version-switcher{
+    display:flex;gap:0;align-items:center;
+    padding:6px 24px;background:var(--parch2);
+    border-bottom:1px solid #d8c890;
+    font-size:.72rem;flex-shrink:0;font-family:Georgia,serif;
+  }
+  .version-switcher .vs-label{
+    color:var(--navy);opacity:.55;text-transform:uppercase;
+    letter-spacing:.1em;margin-right:12px;font-size:.65rem;font-weight:bold
+  }
+  .version-switcher a{
+    color:var(--navy);opacity:.6;text-decoration:none;
+    padding:3px 11px;border-radius:3px;margin-right:4px;
+    transition:.15s
+  }
+  .version-switcher a:hover{opacity:1;background:rgba(27,58,107,.08)}
+  .version-switcher a.current{opacity:1;background:var(--navy);color:var(--gold)}
+
   /* ── Clusters ── */
   .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(196,154,34,.25)}
   .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:var(--gold);color:var(--navy);font-weight:bold}
@@ -108,6 +135,13 @@
     <div class="leg"><div class="leg-dot" style="background:#C0392B"></div>Site</div>
   </div>
 </header>
+
+<div class="version-switcher">
+  <span class="vs-label">View</span>
+  <a href="index.html">Dark Map</a>
+  <a href="gemini.html" class="current">Parchment + Sidebar</a>
+  <a href="gmaps.html">Google Maps</a>
+</div>
 
 <div class="tabs">
   <button class="tab active" onclick="switchCity('Seville',this)">✈ Seville</button>
@@ -179,6 +213,11 @@ const ICONS = {
 };
 
 // ── Popup builders ────────────────────────────────────────────────────────
+function gmapsLink(name, lat, lng){
+  return `<a class="pop-gmaps" target="_blank" rel="noopener"
+    href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}">🗺 Open in Google Maps</a>`;
+}
+
 function restPopup(r){
   const stars = '⭐'.repeat(Math.round(r.rating||0));
   const bookBadge = r.must_book ? '<span class="pill pill-book">★ BOOK NOW</span>' : '';
@@ -194,6 +233,7 @@ function restPopup(r){
     <div class="pop-tip">${r.tip}</div>
     ${xmas}
     <div class="pop-walk">🚶 ${r.walk_min} min from hotel</div>
+    ${gmapsLink(r.name, r.lat, r.lng)}
   </div>`;
 }
 
@@ -204,6 +244,7 @@ function hotelPopup(h){
       <div class="pop-hotel-sub">Your hotel · ${h.city}</div>
     </div>
     <div class="pop-addr">📍 ${h.formatted_address||''}</div>
+    ${gmapsLink(h.name, h.lat, h.lng)}
   </div>`;
 }
 
@@ -212,6 +253,7 @@ function sitePopup(s){
     <div style="padding:6px 0">
       <div class="pop-site-name">🏛 ${s.name}</div>
       <div class="pop-addr" style="margin-top:4px">📍 ${s.formatted_address||''}</div>
+      ${gmapsLink(s.name, s.lat, s.lng)}
     </div>
   </div>`;
 }

@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spain Christmas 2026 — Interactive Maps</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<title>Spain Christmas 2026 — Google Maps</title>
 <style>
   :root {
     --navy: #0a1d3a;
@@ -30,6 +29,24 @@
   header h1 { font-size: 22px; font-weight: 300; letter-spacing: 0.5px; line-height: 1.2; }
   header h1 .gold { color: var(--gold); font-weight: 500; }
   header .sub { margin-top: 4px; font-size: 12px; color: rgba(246,239,222,0.6); letter-spacing: 0.5px; }
+
+  .version-switcher {
+    display: flex; gap: 0; align-items: center;
+    padding: 8px 28px; background: rgba(5,15,31,0.6);
+    border-bottom: 1px solid rgba(212,175,55,0.15);
+    font-size: 11px; flex-shrink: 0;
+  }
+  .version-switcher .vs-label {
+    color: rgba(246,239,222,0.4); text-transform: uppercase;
+    letter-spacing: 1px; margin-right: 14px; font-size: 10px;
+  }
+  .version-switcher a {
+    color: rgba(246,239,222,0.5); text-decoration: none;
+    padding: 4px 12px; border-radius: 3px; margin-right: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .version-switcher a:hover { color: var(--gold-bright); background: rgba(212,175,55,0.08); }
+  .version-switcher a.current { color: var(--gold); background: rgba(212,175,55,0.12); }
 
   .tabs {
     display: flex;
@@ -67,23 +84,42 @@
   .legend-dot.blue { background: var(--blue); }
   .legend-dot.red { background: var(--red); }
 
-  #map { flex: 1; }
+  .map-wrap { position: relative; flex: 1; }
+  #map { width: 100%; height: 100%; }
 
-  /* ── Popup styling ── */
+  /* City info card overlay */
+  .city-card {
+    position: absolute; top: 14px; right: 14px; z-index: 5;
+    background: rgba(10,29,58,0.92); color: var(--cream);
+    border: 1px solid rgba(212,175,55,0.4);
+    border-radius: 8px; padding: 12px 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    min-width: 180px; backdrop-filter: blur(6px);
+    font-size: 12px;
+  }
+  .city-card .cc-name {
+    color: var(--gold-bright); font-size: 14px; font-weight: 600;
+    letter-spacing: 0.5px; margin-bottom: 8px;
+    border-bottom: 1px solid rgba(212,175,55,0.2); padding-bottom: 6px;
+  }
+  .city-card .cc-row { display: flex; justify-content: space-between; padding: 3px 0; color: rgba(246,239,222,0.85); }
+  .city-card .cc-row .cc-label { display: flex; align-items: center; gap: 6px; }
+  .city-card .cc-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .city-card .cc-dot.gold { background: var(--gold); }
+  .city-card .cc-dot.blue { background: var(--blue); }
+  .city-card .cc-dot.red  { background: var(--red); }
+  .city-card .cc-count { color: var(--gold-bright); font-weight: 600; }
+
+  /* InfoWindow */
   .iw {
     width: 270px;
-    padding: 12px 14px;
+    padding: 4px 6px 6px;
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--navy);
     color: var(--cream);
   }
   .iw .kind {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: rgba(246,239,222,0.5);
-    margin-bottom: 3px;
-    font-weight: 600;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: rgba(246,239,222,0.5); margin-bottom: 3px; font-weight: 600;
   }
   .iw .title { color: var(--gold-bright); font-size: 15px; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 7px; line-height: 1.2; }
   .iw .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
@@ -107,7 +143,6 @@
     font-size: 11.5px; color: #f4c4be; line-height: 1.4;
   }
   .iw .xmas::before { content: "🎄 "; }
-  .iw .out-note { margin-top: 7px; font-size: 11px; color: rgba(240,199,94,0.7); font-style: italic; }
   .iw .gmaps-link {
     display: inline-block; margin-top: 8px; font-size: 11px;
     color: rgba(240,199,94,0.75); text-decoration: none;
@@ -115,67 +150,45 @@
   }
   .iw .gmaps-link:hover { color: var(--gold-bright); }
 
-  /* ── Version switcher ── */
-  .version-switcher {
-    display: flex; gap: 0; align-items: center;
-    padding: 8px 28px; background: rgba(5,15,31,0.6);
-    border-bottom: 1px solid rgba(212,175,55,0.15);
-    font-size: 11px; flex-shrink: 0;
+  /* Override Google InfoWindow chrome */
+  .gm-style .gm-style-iw-c {
+    background: var(--navy) !important;
+    border: 1px solid rgba(212,175,55,0.4) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.7) !important;
+    padding: 12px 14px !important;
   }
-  .version-switcher .vs-label {
-    color: rgba(246,239,222,0.4); text-transform: uppercase;
-    letter-spacing: 1px; margin-right: 14px; font-size: 10px;
-  }
-  .version-switcher a {
-    color: rgba(246,239,222,0.5); text-decoration: none;
-    padding: 4px 12px; border-radius: 3px; margin-right: 6px;
-    transition: color 0.15s, background 0.15s;
-  }
-  .version-switcher a:hover { color: var(--gold-bright); background: rgba(212,175,55,0.08); }
-  .version-switcher a.current { color: var(--gold); background: rgba(212,175,55,0.12); }
+  .gm-style .gm-style-iw-tc::after { background: var(--navy) !important; }
+  .gm-style .gm-style-iw-d { overflow: auto !important; }
+  .gm-style-iw button[title="Close"] > span { background: var(--gold) !important; }
+  .gm-style-iw button[title="Close"] > span:hover { background: var(--gold-bright) !important; }
 
-  /* ── Mobile ── */
+  /* Mobile */
   @media (max-width: 640px) {
     header { padding: 10px 14px 8px; }
     header h1 { font-size: 17px; }
     header .sub { font-size: 11px; }
+    .version-switcher { padding: 6px 14px; }
     .tabs { padding: 0; }
     .tab { flex: 1; text-align: center; padding: 14px 8px; font-size: 11px; letter-spacing: 0.5px; }
     .legend { display: none; }
-    .iw { width: min(260px, calc(90vw - 40px)); }
+    .city-card { top: 8px; right: 8px; min-width: 140px; padding: 8px 10px; font-size: 11px; }
+    .iw { width: min(240px, calc(90vw - 60px)); }
   }
-
-  /* Override Leaflet popup chrome */
-  .leaflet-popup-content-wrapper {
-    background: var(--navy) !important;
-    color: var(--cream) !important;
-    border-radius: 10px !important;
-    padding: 0 !important;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.7) !important;
-    border: 1px solid rgba(212,175,55,0.4) !important;
-  }
-  .leaflet-popup-content { margin: 0 !important; }
-  .leaflet-popup-tip { background: var(--navy) !important; }
-  .leaflet-popup-close-button { color: var(--gold) !important; font-size: 18px !important; top: 6px !important; right: 8px !important; }
-  .leaflet-popup-close-button:hover { color: var(--gold-bright) !important; }
-
-  /* Leaflet attribution dark */
-  .leaflet-control-attribution { background: rgba(5,15,31,0.8) !important; color: rgba(246,239,222,0.5) !important; }
-  .leaflet-control-attribution a { color: rgba(212,175,55,0.7) !important; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Spain Christmas 2026 <span class="gold">— Interactive Maps</span></h1>
+  <h1>Spain Christmas 2026 <span class="gold">— Google Maps</span></h1>
   <div class="sub">Restaurants, hotels, and key sights for Seville · Segovia · Madrid</div>
 </header>
 
 <div class="version-switcher">
   <span class="vs-label">View</span>
-  <a href="index.html" class="current">Dark Map</a>
+  <a href="index.html">Dark Map</a>
   <a href="gemini.html">Parchment + Sidebar</a>
-  <a href="gmaps.html">Google Maps</a>
+  <a href="gmaps.html" class="current">Google Maps</a>
 </div>
 
 <div class="tabs">
@@ -189,9 +202,16 @@
   </div>
 </div>
 
-<div id="map"></div>
+<div class="map-wrap">
+  <div id="map"></div>
+  <div class="city-card" id="city-card">
+    <div class="cc-name" id="cc-name">Seville</div>
+    <div class="cc-row"><span class="cc-label"><span class="cc-dot gold"></span>Restaurants</span><span class="cc-count" id="cc-rest">0</span></div>
+    <div class="cc-row"><span class="cc-label"><span class="cc-dot blue"></span>Hotels</span><span class="cc-count" id="cc-hotel">0</span></div>
+    <div class="cc-row"><span class="cc-label"><span class="cc-dot red"></span>Key Sites</span><span class="cc-count" id="cc-site">0</span></div>
+  </div>
+</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const DATA = {"restaurants": [{"stem": "goog-rinconcillo", "name": "El Rinconcillo", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 7, "cuisine": "Traditional Andalusian", "tip": "Experience Seville's oldest bar for authentic tapas and historic charm.", "must_book": false, "christmas_note": null, "lat": 37.3933873, "lng": -5.988364}, {"stem": "goog-eslava", "name": "Bar Eslava", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 18, "cuisine": "Modern Tapas", "tip": "Innovative tapas with creative flair, a must-try for foodies.", "must_book": true, "christmas_note": null, "lat": 37.397491, "lng": -5.9969382}, {"stem": "goog-brunilda", "name": "La Brunilda", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Tapas", "tip": "Popular spot for delicious, inventive tapas in a lively atmosphere.", "must_book": true, "christmas_note": null, "lat": 37.3883556, "lng": -5.99945}, {"stem": "goog-santa-cruz", "name": "Bodega Santa Cruz Las Columnas", "city": "Seville", "rating": 4.3, "price": "€", "walk_min": 3, "cuisine": "Traditional Tapas", "tip": "Classic Sevillian tapas bar, perfect for a quick, authentic bite.", "must_book": false, "christmas_note": null, "lat": 37.38602, "lng": -5.990761}, {"stem": "goog-abantal", "name": "Abantal", "city": "Seville", "rating": 4.5, "price": "€€€€", "walk_min": 25, "cuisine": "Fine Dining", "tip": "Michelin-starred dining for an unforgettable, upscale Christmas feast.", "must_book": true, "christmas_note": "Likely closed on Christmas Day and New Year's Day, check in advance.", "lat": 37.3879127, "lng": -5.9836813}, {"stem": "goog-azotea", "name": "La Azotea", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Enjoy creative tapas with a rooftop view, ideal for festive evenings.", "must_book": true, "christmas_note": null, "lat": 37.3966443, "lng": -5.9952792}, {"stem": "goog-alabardero", "name": "Taberna del Alabardero", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 8, "cuisine": "Traditional Andalusian", "tip": "Elegant setting for refined traditional dishes, perfect for a special Christmas meal.", "must_book": true, "christmas_note": "May offer special Christmas menus, booking essential.", "lat": 37.3884896, "lng": -5.9980976}, {"stem": "goog-morales", "name": "Bar Morales", "city": "Seville", "rating": 4.5, "price": "€", "walk_min": 4, "cuisine": "Traditional Tapas", "tip": "Authentic tapas experience in the heart of Santa Cruz, a local favorite.", "must_book": false, "christmas_note": null, "lat": 37.3864703, "lng": -5.9946075}, {"stem": "goog-alfalfa", "name": "Bar Alfalfa", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Lively atmosphere with delicious, affordable tapas, great for pre-Christmas cheer.", "must_book": false, "christmas_note": null, "lat": 37.3899841, "lng": -5.9901075}, {"stem": "goog-pinton", "name": "Pintón", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Tapas", "tip": "Artistic presentation and creative flavors make this tapas spot stand out.", "must_book": true, "christmas_note": null, "lat": 37.3878898, "lng": -5.9927654}, {"stem": "goog-san-telmo", "name": "Vinería San Telmo", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Excellent wine selection paired with inventive tapas, perfect for holiday celebrations.", "must_book": true, "christmas_note": null, "lat": 37.3854384, "lng": -5.9865712}, {"stem": "goog-contenedor", "name": "ConTenedor", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 25, "cuisine": "Organic Fusion", "tip": "Organic, seasonal dishes in a charming, relaxed setting outside the center.", "must_book": true, "christmas_note": null, "lat": 37.398411, "lng": -5.987947}, {"stem": "goog-primera", "name": "La Primera del Mercado Triana", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 18, "cuisine": "Seafood Tapas", "tip": "Fresh seafood tapas right in the vibrant Triana Market, a lively experience.", "must_book": false, "christmas_note": null, "lat": 37.3857102, "lng": -6.0036109}, {"stem": "goog-coloniales", "name": "Los Coloniales", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 6, "cuisine": "Traditional Tapas", "tip": "Bustling, traditional tapas bar with generous portions and great value.", "must_book": false, "christmas_note": null, "lat": 37.3915328, "lng": -5.9895149}, {"stem": "goog-ispal", "name": "Ispal", "city": "Seville", "rating": 4.6, "price": "€€€", "walk_min": 7, "cuisine": "Modern Andalusian", "tip": "Refined Andalusian cuisine with a modern twist, perfect for a festive dinner.", "must_book": true, "christmas_note": "Likely to have special Christmas menus, booking essential.", "lat": 37.3816135, "lng": -5.9862918}, {"stem": "goog-faro-triana", "name": "El Faro de Triana", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 18, "cuisine": "Seafood", "tip": "Excellent seafood restaurant with views of the Guadalquivir River.", "must_book": true, "christmas_note": null, "lat": 37.3856358, "lng": -6.0027468}, {"stem": "goog-becerrita", "name": "Becerrita", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 15, "cuisine": "Traditional Andalusian", "tip": "Known for its excellent grilled meats and traditional Andalusian dishes.", "must_book": true, "christmas_note": null, "lat": 37.3904247, "lng": -5.9842474}, {"stem": "goog-cinco-jotas", "name": "Cinco Jotas Seville", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 7, "cuisine": "Iberian Ham", "tip": "Indulge in the finest Iberian ham and traditional Spanish delicacies.", "must_book": true, "christmas_note": null, "lat": 37.3862767, "lng": -5.9962426}, {"stem": "goog-pepona", "name": "La Pepona", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 10, "cuisine": "Modern Tapas", "tip": "Creative and delicious tapas in a stylish setting, great for sharing.", "must_book": true, "christmas_note": null, "lat": 37.3936491, "lng": -5.9938638}, {"stem": "goog-robles-laredo", "name": "Robles Laredo", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 7, "cuisine": "Traditional Andalusian", "tip": "Elegant dining with high-quality traditional Andalusian cuisine.", "must_book": true, "christmas_note": "Likely closed on Christmas Day and New Year's Day, check in advance.", "lat": 37.3891495, "lng": -5.9942324}, {"stem": "goog-giralda", "name": "Cervecería Giralda", "city": "Seville", "rating": 4.3, "price": "€", "walk_min": 5, "cuisine": "Traditional Tapas", "tip": "A bustling, no-frills spot for classic tapas and local beer.", "must_book": false, "christmas_note": null, "lat": 37.3861534, "lng": -5.9913968}, {"stem": "goog-tab-coloniales", "name": "Taberna Coloniales", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 6, "cuisine": "Traditional Tapas", "tip": "Another popular choice for generous, traditional tapas at great prices.", "must_book": false, "christmas_note": null, "lat": 37.3916, "lng": -5.9896}, {"stem": "goog-toranzo", "name": "La Flor de Toranzo", "city": "Seville", "rating": 4.3, "price": "€€", "walk_min": 7, "cuisine": "Traditional Tapas", "tip": "Classic tapas bar with a long history and a wide variety of options.", "must_book": false, "christmas_note": null, "lat": 37.3879272, "lng": -5.9960887}, {"stem": "goog-gaditanos", "name": "Los Gaditanos", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 15, "cuisine": "Cádiz Cuisine", "tip": "Taste the flavors of Cádiz with fresh seafood and unique tapas.", "must_book": true, "christmas_note": null, "lat": 37.3848115, "lng": -6.0027412},
 {"stem": "goog-candido", "name": "Mesón de Cándido", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 5, "cuisine": "Traditional Castilian", "tip": "Famous for its cochinillo asado, a Christmas feast centerpiece.", "must_book": true, "christmas_note": null, "lat": 40.9477647, "lng": -4.1178709}, {"stem": "goog-jose-maria", "name": "Restaurante José María", "city": "Segovia", "rating": 4.5, "price": "€€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "Experience authentic Segovian flavors, perfect for a festive family meal.", "must_book": true, "christmas_note": null, "lat": 40.950496, "lng": -4.122674}, {"stem": "goog-casa-duque", "name": "Casa Duque", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 4, "cuisine": "Traditional Castilian", "tip": "Savor their legendary cochinillo and suckling lamb in a historic setting.", "must_book": true, "christmas_note": null, "lat": 40.9478165, "lng": -4.1197235}, {"stem": "goog-bernardino", "name": "El Bernardino", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Enjoy hearty, traditional dishes ideal for warming up during winter holidays.", "must_book": true, "christmas_note": null, "lat": 40.94782, "lng": -4.11996}, {"stem": "goog-almuzara", "name": "La Almuzara", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 7, "cuisine": "Modern Spanish", "tip": "A contemporary twist on Spanish cuisine, perfect for a festive date night.", "must_book": true, "christmas_note": null, "lat": 40.9509626, "lng": -4.1262226}, {"stem": "goog-fogon-sefardi", "name": "El Fogón Sefardí", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 5, "cuisine": "Sephardic Jewish", "tip": "Unique Sephardic flavors offer a distinct Christmas dining experience.", "must_book": true, "christmas_note": null, "lat": 40.9495371, "lng": -4.1242055}, {"stem": "goog-maridaje", "name": "Restaurante Maridaje", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Spanish", "tip": "Creative dishes and excellent wine pairings for a special holiday meal.", "must_book": true, "christmas_note": null, "lat": 40.9505, "lng": -4.1228}, {"stem": "goog-san-esteban", "name": "Cueva de San Esteban", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Dine in a unique cave setting, offering a memorable Christmas atmosphere.", "must_book": true, "christmas_note": null, "lat": 40.9511986, "lng": -4.1244617}, {"stem": "goog-rancho", "name": "Restaurante Rancho", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 10, "cuisine": "Traditional Spanish", "tip": "Hearty, rustic dishes perfect for a cozy Christmas gathering.", "must_book": false, "christmas_note": null, "lat": 40.9396218, "lng": -4.1141855}, {"stem": "goog-jeyma", "name": "Jeyma", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Known for its excellent cochinillo, a must-try for Christmas.", "must_book": true, "christmas_note": null, "lat": 40.9503982, "lng": -4.1234749}, {"stem": "goog-taurina", "name": "Mesón La Taurina", "city": "Segovia", "rating": 4.2, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Enjoy classic Segovian cuisine in a lively, traditional setting.", "must_book": false, "christmas_note": null, "lat": 40.9506816, "lng": -4.1237193}, {"stem": "goog-concepcion", "name": "La Concepción", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "A charming spot for traditional Castilian dishes during the holidays.", "must_book": false, "christmas_note": null, "lat": 40.9503996, "lng": -4.12441}, {"stem": "goog-narcea", "name": "El Narcea", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Experience authentic local flavors, perfect for a festive family meal.", "must_book": true, "christmas_note": null, "lat": 40.9497917, "lng": -4.1230028}, {"stem": "goog-campesino", "name": "El Campesino", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 12, "cuisine": "Traditional Spanish", "tip": "Rustic and hearty meals, ideal for a warm Christmas lunch.", "must_book": false, "christmas_note": null, "lat": 40.9499, "lng": -4.1232}, {"stem": "goog-portal", "name": "Restaurante El Portal", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 5, "cuisine": "Modern Spanish", "tip": "Elegant dining with creative dishes, perfect for a sophisticated Christmas celebration.", "must_book": true, "christmas_note": null, "lat": 40.963871, "lng": -4.136568}, {"stem": "goog-txoko", "name": "Restaurante Txoko", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Basque Spanish", "tip": "Enjoy exquisite Basque-inspired cuisine for a unique holiday feast.", "must_book": true, "christmas_note": null, "lat": 40.9506, "lng": -4.123}, {"stem": "goog-sitio", "name": "El Sitio", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "Enjoy classic Segovian dishes in a warm and inviting atmosphere.", "must_book": false, "christmas_note": null, "lat": 40.9497917, "lng": -4.1231}, {"stem": "goog-meson-dias", "name": "Mesón de los Días", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Savor hearty, traditional meals perfect for a festive winter lunch.", "must_book": false, "christmas_note": null, "lat": 40.9478, "lng": -4.118}, {"stem": "goog-parador-segovia", "name": "Parador de Segovia", "city": "Segovia", "rating": 4.3, "price": "€€€", "walk_min": 15, "cuisine": "Traditional Castilian", "tip": "Dine with stunning views, offering a grand Christmas dining experience.", "must_book": true, "christmas_note": null, "lat": 40.9602655, "lng": -4.1101125},
@@ -205,43 +225,52 @@ const CITIES = {
   Madrid:  { lat: 40.4168, lng: -3.7038, zoom: 14 }
 };
 
-// ── Map init ──────────────────────────────────────────────────────────────
-const map = L.map('map', { zoomControl: true })
-  .setView([CITIES.Seville.lat, CITIES.Seville.lng], CITIES.Seville.zoom);
+// Dark navy map style — matches index.html theme
+const MAP_STYLE = [
+  {elementType:'geometry',stylers:[{color:'#0a1d3a'}]},
+  {elementType:'labels.text.stroke',stylers:[{color:'#050f1f'}]},
+  {elementType:'labels.text.fill',stylers:[{color:'#9ec3ee'}]},
+  {featureType:'administrative.locality',elementType:'labels.text.fill',stylers:[{color:'#d4af37'}]},
+  {featureType:'poi',elementType:'labels.text.fill',stylers:[{color:'#8a9bb5'}]},
+  {featureType:'poi.park',elementType:'geometry',stylers:[{color:'#1a3047'}]},
+  {featureType:'poi.park',elementType:'labels.text.fill',stylers:[{color:'#6b8e9e'}]},
+  {featureType:'road',elementType:'geometry',stylers:[{color:'#16335c'}]},
+  {featureType:'road',elementType:'geometry.stroke',stylers:[{color:'#0a1d3a'}]},
+  {featureType:'road',elementType:'labels.text.fill',stylers:[{color:'#b8c5db'}]},
+  {featureType:'road.highway',elementType:'geometry',stylers:[{color:'#2a4980'}]},
+  {featureType:'road.highway',elementType:'geometry.stroke',stylers:[{color:'#0a1d3a'}]},
+  {featureType:'road.highway',elementType:'labels.text.fill',stylers:[{color:'#f0c75e'}]},
+  {featureType:'transit',elementType:'geometry',stylers:[{color:'#16335c'}]},
+  {featureType:'transit.station',elementType:'labels.text.fill',stylers:[{color:'#d4af37'}]},
+  {featureType:'water',elementType:'geometry',stylers:[{color:'#020812'}]},
+  {featureType:'water',elementType:'labels.text.fill',stylers:[{color:'#3d5980'}]}
+];
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(map);
-
-// ── Custom pin icon ──────────────────────────────────────────────────────
-function pinIcon(color, glyph, ring) {
+// SVG pin builders → Google Maps Marker icons
+function pinSvg(color, glyph, ring) {
   ring = ring || 'rgba(255,255,255,0.85)';
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='46' viewBox='0 0 36 46'>
-    <defs><filter id='s'><feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='black' flood-opacity='0.5'/></filter></defs>
-    <path filter='url(#s)' fill='${color}' stroke='${ring}' stroke-width='2'
-      d='M18 2C9 2 2 9 2 17.5c0 11 16 26 16 26s16-15 16-26C34 9 27 2 18 2z'/>
-    <text x='18' y='23' text-anchor='middle' font-size='14'
-      font-family='Segoe UI Symbol,Apple Color Emoji,sans-serif' fill='white'>${glyph}</text>
-  </svg>`;
-  return L.divIcon({
-    html: `<div style="width:36px;height:46px">${svg}</div>`,
-    className: '', iconSize: [36, 46], iconAnchor: [18, 44], popupAnchor: [0, -44]
-  });
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='46' viewBox='0 0 36 46'>
+      <defs><filter id='s'><feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='black' flood-opacity='0.5'/></filter></defs>
+      <path filter='url(#s)' fill='${color}' stroke='${ring}' stroke-width='2'
+        d='M18 2C9 2 2 9 2 17.5c0 11 16 26 16 26s16-15 16-26C34 9 27 2 18 2z'/>
+      <text x='18' y='23' text-anchor='middle' font-size='14'
+        font-family='Segoe UI Symbol,Apple Color Emoji,sans-serif' fill='white'>${glyph}</text>
+    </svg>`
+  );
 }
 
-const ICONS = {
-  restaurant: (mustBook) => pinIcon(mustBook ? '#b8920a' : '#d4af37', mustBook ? '★' : '🍽'),
-  hotel: pinIcon('#2a6fc9', '🏨'),
-  site: pinIcon('#c0392b', '🏛'),
-};
+function pinIcon(color, glyph) {
+  return {
+    url: pinSvg(color, glyph),
+    scaledSize: new google.maps.Size(36, 46),
+    anchor: new google.maps.Point(18, 44)
+  };
+}
 
-// ── HTML builders ────────────────────────────────────────────────────────
 function esc(s){ return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function gmapsLink(name, lat, lng) {
-  const q = encodeURIComponent(name + ' ' + lat + ',' + lng);
   return `<a class="gmaps-link" target="_blank" rel="noopener"
     href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}">🗺 Open in Google Maps</a>`;
 }
@@ -282,44 +311,110 @@ function siteHtml(s) {
   </div>`;
 }
 
-// ── Build layers ──────────────────────────────────────────────────────────
+let map;
+let infoWindow;
 const layers = { Seville: [], Segovia: [], Madrid: [] };
-
-['Seville','Segovia','Madrid'].forEach(city => {
-  const cityLayers = [];
-
-  DATA.restaurants.filter(r => r.city === city && r.lat).forEach(r => {
-    const m = L.marker([r.lat, r.lng], { icon: ICONS.restaurant(r.must_book) })
-      .bindPopup(restHtml(r), { maxWidth: 290, className: '' });
-    cityLayers.push(m);
-  });
-
-  DATA.hotels.filter(h => h.city === city && h.lat).forEach(h => {
-    const m = L.marker([h.lat, h.lng], { icon: ICONS.hotel, zIndexOffset: 1000 })
-      .bindPopup(hotelHtml(h), { maxWidth: 290 });
-    cityLayers.push(m);
-  });
-
-  DATA.sites.filter(s => s.city === city && s.lat).forEach(s => {
-    const m = L.marker([s.lat, s.lng], { icon: ICONS.site })
-      .bindPopup(siteHtml(s), { maxWidth: 290 });
-    cityLayers.push(m);
-  });
-
-  layers[city] = cityLayers;
-});
-
-// ── City switching ────────────────────────────────────────────────────────
+const counts = { Seville: {r:0,h:0,s:0}, Segovia: {r:0,h:0,s:0}, Madrid: {r:0,h:0,s:0} };
 let currentCity = 'Seville';
-let activeLayers = [];
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: CITIES.Seville.lat, lng: CITIES.Seville.lng },
+    zoom: CITIES.Seville.zoom,
+    styles: MAP_STYLE,
+    disableDefaultUI: false,
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: true,
+    backgroundColor: '#0a1d3a'
+  });
+
+  infoWindow = new google.maps.InfoWindow({ maxWidth: 300 });
+
+  // Build markers per city
+  ['Seville','Segovia','Madrid'].forEach(city => {
+    const items = [];
+
+    DATA.restaurants.filter(r => r.city === city && r.lat).forEach(r => {
+      const color = r.must_book ? '#b8920a' : '#d4af37';
+      const glyph = r.must_book ? '★' : '🍽';
+      const m = new google.maps.Marker({
+        position: { lat: r.lat, lng: r.lng },
+        icon: pinIcon(color, glyph),
+        title: r.name
+      });
+      m.addListener('click', () => {
+        infoWindow.setContent(restHtml(r));
+        infoWindow.open(map, m);
+      });
+      items.push(m);
+      counts[city].r++;
+    });
+
+    DATA.hotels.filter(h => h.city === city && h.lat).forEach(h => {
+      const m = new google.maps.Marker({
+        position: { lat: h.lat, lng: h.lng },
+        icon: pinIcon('#2a6fc9', '🏨'),
+        title: h.name,
+        zIndex: 1000
+      });
+      m.addListener('click', () => {
+        infoWindow.setContent(hotelHtml(h));
+        infoWindow.open(map, m);
+      });
+      items.push(m);
+      counts[city].h++;
+    });
+
+    DATA.sites.filter(s => s.city === city && s.lat).forEach(s => {
+      const m = new google.maps.Marker({
+        position: { lat: s.lat, lng: s.lng },
+        icon: pinIcon('#c0392b', '🏛'),
+        title: s.name
+      });
+      m.addListener('click', () => {
+        infoWindow.setContent(siteHtml(s));
+        infoWindow.open(map, m);
+      });
+      items.push(m);
+      counts[city].s++;
+    });
+
+    layers[city] = items;
+  });
+
+  showCity('Seville');
+}
 
 function showCity(city) {
-  activeLayers.forEach(m => map.removeLayer(m));
-  activeLayers = layers[city];
-  activeLayers.forEach(m => m.addTo(map));
-  const c = CITIES[city];
-  map.setView([c.lat, c.lng], c.zoom, { animate: true, duration: 0.6 });
+  // Hide all markers
+  ['Seville','Segovia','Madrid'].forEach(c => {
+    layers[c].forEach(m => m.setMap(null));
+  });
+  // Show current city markers
+  layers[city].forEach(m => m.setMap(map));
+  infoWindow.close();
+
+  // Fit bounds
+  if (layers[city].length) {
+    const bounds = new google.maps.LatLngBounds();
+    layers[city].forEach(m => bounds.extend(m.getPosition()));
+    map.fitBounds(bounds, { top: 60, right: 220, bottom: 40, left: 40 });
+  } else {
+    const c = CITIES[city];
+    map.setCenter({ lat: c.lat, lng: c.lng });
+    map.setZoom(c.zoom);
+  }
+
   currentCity = city;
+  updateCityCard(city);
+}
+
+function updateCityCard(city) {
+  document.getElementById('cc-name').textContent = city;
+  document.getElementById('cc-rest').textContent = counts[city].r;
+  document.getElementById('cc-hotel').textContent = counts[city].h;
+  document.getElementById('cc-site').textContent = counts[city].s;
 }
 
 function switchCity(city, btn) {
@@ -328,8 +423,13 @@ function switchCity(city, btn) {
   showCity(city);
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
-showCity('Seville');
+// Load Google Maps JS API
+(function loadMaps(){
+  const s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyBYS8XPKDdjfqGGb9tUP1qJQzCHQ2rnCfc&callback=initMap&v=weekly';
+  s.async = true; s.defer = true;
+  document.head.appendChild(s);
+})();
 </script>
 </body>
 </html>
