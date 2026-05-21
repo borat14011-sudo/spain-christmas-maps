@@ -240,10 +240,10 @@ const ICONS = {
 // ── HTML builders ────────────────────────────────────────────────────────
 function esc(s){ return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function gmapsLink(name, lat, lng) {
-  const q = encodeURIComponent(name + ' ' + lat + ',' + lng);
+function gmapsLink(name, city) {
+  const q = encodeURIComponent(name + ' ' + city + ' Spain');
   return `<a class="gmaps-link" target="_blank" rel="noopener"
-    href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}">🗺 Open in Google Maps</a>`;
+    href="https://www.google.com/maps/search/?api=1&query=${q}">🗺 Open in Google Maps</a>`;
 }
 
 function restHtml(r) {
@@ -260,7 +260,7 @@ function restHtml(r) {
     ${r.must_book ? '<div class="book-now">★ BOOK NOW</div>' : ''}
     <div class="tip">${esc(r.tip)}</div>
     ${r.christmas_note ? `<div class="xmas">${esc(r.christmas_note)}</div>` : ''}
-    ${gmapsLink(r.name, r.lat, r.lng)}
+    ${gmapsLink(r.name, r.city)}
   </div>`;
 }
 
@@ -269,7 +269,7 @@ function hotelHtml(h) {
     <div class="kind">Hotel · Your stay</div>
     <div class="title">${esc(h.name)}</div>
     <div class="tip">${esc(h.formatted_address||'')}</div>
-    ${gmapsLink(h.name, h.lat, h.lng)}
+    ${gmapsLink(h.name, h.city)}
   </div>`;
 }
 
@@ -278,7 +278,7 @@ function siteHtml(s) {
     <div class="kind">Key Site</div>
     <div class="title">${esc(s.name)}</div>
     <div class="tip">${esc(s.formatted_address||'')}</div>
-    ${gmapsLink(s.name, s.lat, s.lng)}
+    ${gmapsLink(s.name, s.city)}
   </div>`;
 }
 
