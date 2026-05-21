@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spain Christmas 2026 — Interactive Maps</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  :root {
+    --navy: #0a1d3a;
+    --navy-deep: #050f1f;
+    --navy-light: #16335c;
+    --gold: #d4af37;
+    --gold-bright: #f0c75e;
+    --cream: #f6efde;
+    --red: #c0392b;
+    --blue: #2a6fc9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--navy-deep); color: var(--cream); display: flex; flex-direction: column; }
+
+  header {
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 60%, var(--navy-light) 100%);
+    color: var(--cream);
+    padding: 18px 28px 14px;
+    border-bottom: 3px solid var(--gold);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+  }
+  header h1 { font-size: 22px; font-weight: 300; letter-spacing: 0.5px; line-height: 1.2; }
+  header h1 .gold { color: var(--gold); font-weight: 500; }
+  header .sub { margin-top: 4px; font-size: 12px; color: rgba(246,239,222,0.6); letter-spacing: 0.5px; }
+
+  .tabs {
+    display: flex;
+    align-items: center;
+    background: var(--navy);
+    border-bottom: 2px solid rgba(212,175,55,0.3);
+    padding: 0 12px;
+    flex-shrink: 0;
+  }
+  .tab {
+    padding: 12px 20px;
+    cursor: pointer;
+    color: rgba(246,239,222,0.55);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+    user-select: none;
+  }
+  .tab:hover { color: var(--gold-bright); }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .legend {
+    margin-left: auto;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 0 8px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(246,239,222,0.65); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.4); }
+  .legend-dot.gold { background: var(--gold); }
+  .legend-dot.blue { background: var(--blue); }
+  .legend-dot.red { background: var(--red); }
+
+  #map { flex: 1; }
+
+  /* ── Popup styling ── */
+  .iw {
+    width: 270px;
+    padding: 12px 14px;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--navy);
+    color: var(--cream);
+  }
+  .iw .kind {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(246,239,222,0.5);
+    margin-bottom: 3px;
+    font-weight: 600;
+  }
+  .iw .title { color: var(--gold-bright); font-size: 15px; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 7px; line-height: 1.2; }
+  .iw .pills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 9px; }
+  .iw .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 500; letter-spacing: 0.4px;
+  }
+  .iw .pill.cuisine { background: rgba(212,175,55,0.18); color: var(--gold-bright); border: 1px solid rgba(212,175,55,0.4); }
+  .iw .pill.price   { background: rgba(255,255,255,0.08); color: var(--cream); border: 1px solid rgba(255,255,255,0.2); }
+  .iw .pill.rating  { background: rgba(240,199,94,0.15); color: var(--gold-bright); border: 1px solid rgba(240,199,94,0.4); }
+  .iw .pill.walk    { background: rgba(42,111,201,0.18); color: #9ec3ee; border: 1px solid rgba(42,111,201,0.4); }
+  .iw .book-now {
+    display: inline-block; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%);
+    color: var(--navy-deep); padding: 3px 10px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.2px; margin-bottom: 8px;
+  }
+  .iw .tip { color: var(--cream); font-size: 12.5px; line-height: 1.45; margin: 0 0 7px; opacity: 0.92; }
+  .iw .xmas {
+    margin-top: 5px; padding: 6px 8px;
+    background: rgba(192,57,43,0.12); border-left: 2px solid var(--red); border-radius: 3px;
+    font-size: 11.5px; color: #f4c4be; line-height: 1.4;
+  }
+  .iw .xmas::before { content: "🎄 "; }
+  .iw .out-note { margin-top: 7px; font-size: 11px; color: rgba(240,199,94,0.7); font-style: italic; }
+
+  /* Override Leaflet popup chrome */
+  .leaflet-popup-content-wrapper {
+    background: var(--navy) !important;
+    color: var(--cream) !important;
+    border-radius: 10px !important;
+    padding: 0 !important;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.7) !important;
+    border: 1px solid rgba(212,175,55,0.4) !important;
+  }
+  .leaflet-popup-content { margin: 0 !important; }
+  .leaflet-popup-tip { background: var(--navy) !important; }
+  .leaflet-popup-close-button { color: var(--gold) !important; font-size: 18px !important; top: 6px !important; right: 8px !important; }
+  .leaflet-popup-close-button:hover { color: var(--gold-bright) !important; }
+
+  /* Leaflet attribution dark */
+  .leaflet-control-attribution { background: rgba(5,15,31,0.8) !important; color: rgba(246,239,222,0.5) !important; }
+  .leaflet-control-attribution a { color: rgba(212,175,55,0.7) !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Spain Christmas 2026 <span class="gold">— Interactive Maps</span></h1>
+  <div class="sub">Restaurants, hotels, and key sights for Seville · Segovia · Madrid</div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchCity('Seville',this)">Seville</div>
+  <div class="tab" onclick="switchCity('Segovia',this)">Segovia</div>
+  <div class="tab" onclick="switchCity('Madrid',this)">Madrid</div>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot gold"></span> Restaurants</div>
+    <div class="legend-item"><span class="legend-dot blue"></span> Hotels</div>
+    <div class="legend-item"><span class="legend-dot red"></span> Key Sites</div>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const DATA = {"restaurants": [{"stem": "goog-rinconcillo", "name": "El Rinconcillo", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 7, "cuisine": "Traditional Andalusian", "tip": "Experience Seville's oldest bar for authentic tapas and historic charm.", "must_book": false, "christmas_note": null, "lat": 37.3933873, "lng": -5.988364}, {"stem": "goog-eslava", "name": "Bar Eslava", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 18, "cuisine": "Modern Tapas", "tip": "Innovative tapas with creative flair, a must-try for foodies.", "must_book": true, "christmas_note": null, "lat": 37.397491, "lng": -5.9969382}, {"stem": "goog-brunilda", "name": "La Brunilda", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Tapas", "tip": "Popular spot for delicious, inventive tapas in a lively atmosphere.", "must_book": true, "christmas_note": null, "lat": 37.3883556, "lng": -5.99945}, {"stem": "goog-santa-cruz", "name": "Bodega Santa Cruz Las Columnas", "city": "Seville", "rating": 4.3, "price": "€", "walk_min": 3, "cuisine": "Traditional Tapas", "tip": "Classic Sevillian tapas bar, perfect for a quick, authentic bite.", "must_book": false, "christmas_note": null, "lat": 37.38602, "lng": -5.990761}, {"stem": "goog-abantal", "name": "Abantal", "city": "Seville", "rating": 4.5, "price": "€€€€", "walk_min": 25, "cuisine": "Fine Dining", "tip": "Michelin-starred dining for an unforgettable, upscale Christmas feast.", "must_book": true, "christmas_note": "Likely closed on Christmas Day and New Year's Day, check in advance.", "lat": 37.3879127, "lng": -5.9836813}, {"stem": "goog-azotea", "name": "La Azotea", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Enjoy creative tapas with a rooftop view, ideal for festive evenings.", "must_book": true, "christmas_note": null, "lat": 37.3966443, "lng": -5.9952792}, {"stem": "goog-alabardero", "name": "Taberna del Alabardero", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 8, "cuisine": "Traditional Andalusian", "tip": "Elegant setting for refined traditional dishes, perfect for a special Christmas meal.", "must_book": true, "christmas_note": "May offer special Christmas menus, booking essential.", "lat": 37.3884896, "lng": -5.9980976}, {"stem": "goog-morales", "name": "Bar Morales", "city": "Seville", "rating": 4.5, "price": "€", "walk_min": 4, "cuisine": "Traditional Tapas", "tip": "Authentic tapas experience in the heart of Santa Cruz, a local favorite.", "must_book": false, "christmas_note": null, "lat": 37.3864703, "lng": -5.9946075}, {"stem": "goog-alfalfa", "name": "Bar Alfalfa", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Lively atmosphere with delicious, affordable tapas, great for pre-Christmas cheer.", "must_book": false, "christmas_note": null, "lat": 37.3899841, "lng": -5.9901075}, {"stem": "goog-pinton", "name": "Pintón", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Tapas", "tip": "Artistic presentation and creative flavors make this tapas spot stand out.", "must_book": true, "christmas_note": null, "lat": 37.3878898, "lng": -5.9927654}, {"stem": "goog-san-telmo", "name": "Vinería San Telmo", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Modern Tapas", "tip": "Excellent wine selection paired with inventive tapas, perfect for holiday celebrations.", "must_book": true, "christmas_note": null, "lat": 37.3854384, "lng": -5.9865712}, {"stem": "goog-contenedor", "name": "ConTenedor", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 25, "cuisine": "Organic Fusion", "tip": "Organic, seasonal dishes in a charming, relaxed setting outside the center.", "must_book": true, "christmas_note": null, "lat": 37.398411, "lng": -5.987947}, {"stem": "goog-primera", "name": "La Primera del Mercado Triana", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 18, "cuisine": "Seafood Tapas", "tip": "Fresh seafood tapas right in the vibrant Triana Market, a lively experience.", "must_book": false, "christmas_note": null, "lat": 37.3857102, "lng": -6.0036109}, {"stem": "goog-coloniales", "name": "Los Coloniales", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 6, "cuisine": "Traditional Tapas", "tip": "Bustling, traditional tapas bar with generous portions and great value.", "must_book": false, "christmas_note": null, "lat": 37.3915328, "lng": -5.9895149}, {"stem": "goog-ispal", "name": "Ispal", "city": "Seville", "rating": 4.6, "price": "€€€", "walk_min": 7, "cuisine": "Modern Andalusian", "tip": "Refined Andalusian cuisine with a modern twist, perfect for a festive dinner.", "must_book": true, "christmas_note": "Likely to have special Christmas menus, booking essential.", "lat": 37.3816135, "lng": -5.9862918}, {"stem": "goog-faro-triana", "name": "El Faro de Triana", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 18, "cuisine": "Seafood", "tip": "Excellent seafood restaurant with views of the Guadalquivir River.", "must_book": true, "christmas_note": null, "lat": 37.3856358, "lng": -6.0027468}, {"stem": "goog-becerrita", "name": "Becerrita", "city": "Seville", "rating": 4.4, "price": "€€", "walk_min": 15, "cuisine": "Traditional Andalusian", "tip": "Known for its excellent grilled meats and traditional Andalusian dishes.", "must_book": true, "christmas_note": null, "lat": 37.3904247, "lng": -5.9842474}, {"stem": "goog-cinco-jotas", "name": "Cinco Jotas Seville", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 7, "cuisine": "Iberian Ham", "tip": "Indulge in the finest Iberian ham and traditional Spanish delicacies.", "must_book": true, "christmas_note": null, "lat": 37.3862767, "lng": -5.9962426}, {"stem": "goog-pepona", "name": "La Pepona", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 10, "cuisine": "Modern Tapas", "tip": "Creative and delicious tapas in a stylish setting, great for sharing.", "must_book": true, "christmas_note": null, "lat": 37.3936491, "lng": -5.9938638}, {"stem": "goog-robles-laredo", "name": "Robles Laredo", "city": "Seville", "rating": 4.4, "price": "€€€", "walk_min": 7, "cuisine": "Traditional Andalusian", "tip": "Elegant dining with high-quality traditional Andalusian cuisine.", "must_book": true, "christmas_note": "Likely closed on Christmas Day and New Year's Day, check in advance.", "lat": 37.3891495, "lng": -5.9942324}, {"stem": "goog-giralda", "name": "Cervecería Giralda", "city": "Seville", "rating": 4.3, "price": "€", "walk_min": 5, "cuisine": "Traditional Tapas", "tip": "A bustling, no-frills spot for classic tapas and local beer.", "must_book": false, "christmas_note": null, "lat": 37.3861534, "lng": -5.9913968}, {"stem": "goog-tab-coloniales", "name": "Taberna Coloniales", "city": "Seville", "rating": 4.4, "price": "€", "walk_min": 6, "cuisine": "Traditional Tapas", "tip": "Another popular choice for generous, traditional tapas at great prices.", "must_book": false, "christmas_note": null, "lat": 37.3916, "lng": -5.9896}, {"stem": "goog-toranzo", "name": "La Flor de Toranzo", "city": "Seville", "rating": 4.3, "price": "€€", "walk_min": 7, "cuisine": "Traditional Tapas", "tip": "Classic tapas bar with a long history and a wide variety of options.", "must_book": false, "christmas_note": null, "lat": 37.3879272, "lng": -5.9960887}, {"stem": "goog-gaditanos", "name": "Los Gaditanos", "city": "Seville", "rating": 4.5, "price": "€€", "walk_min": 15, "cuisine": "Cádiz Cuisine", "tip": "Taste the flavors of Cádiz with fresh seafood and unique tapas.", "must_book": true, "christmas_note": null, "lat": 37.3848115, "lng": -6.0027412},
+{"stem": "goog-candido", "name": "Mesón de Cándido", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 5, "cuisine": "Traditional Castilian", "tip": "Famous for its cochinillo asado, a Christmas feast centerpiece.", "must_book": true, "christmas_note": null, "lat": 40.9477647, "lng": -4.1178709}, {"stem": "goog-jose-maria", "name": "Restaurante José María", "city": "Segovia", "rating": 4.5, "price": "€€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "Experience authentic Segovian flavors, perfect for a festive family meal.", "must_book": true, "christmas_note": null, "lat": 40.950496, "lng": -4.122674}, {"stem": "goog-casa-duque", "name": "Casa Duque", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 4, "cuisine": "Traditional Castilian", "tip": "Savor their legendary cochinillo and suckling lamb in a historic setting.", "must_book": true, "christmas_note": null, "lat": 40.9478165, "lng": -4.1197235}, {"stem": "goog-bernardino", "name": "El Bernardino", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Enjoy hearty, traditional dishes ideal for warming up during winter holidays.", "must_book": true, "christmas_note": null, "lat": 40.94782, "lng": -4.11996}, {"stem": "goog-almuzara", "name": "La Almuzara", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 7, "cuisine": "Modern Spanish", "tip": "A contemporary twist on Spanish cuisine, perfect for a festive date night.", "must_book": true, "christmas_note": null, "lat": 40.9509626, "lng": -4.1262226}, {"stem": "goog-fogon-sefardi", "name": "El Fogón Sefardí", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 5, "cuisine": "Sephardic Jewish", "tip": "Unique Sephardic flavors offer a distinct Christmas dining experience.", "must_book": true, "christmas_note": null, "lat": 40.9495371, "lng": -4.1242055}, {"stem": "goog-maridaje", "name": "Restaurante Maridaje", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Modern Spanish", "tip": "Creative dishes and excellent wine pairings for a special holiday meal.", "must_book": true, "christmas_note": null, "lat": 40.9505, "lng": -4.1228}, {"stem": "goog-san-esteban", "name": "Cueva de San Esteban", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Dine in a unique cave setting, offering a memorable Christmas atmosphere.", "must_book": true, "christmas_note": null, "lat": 40.9511986, "lng": -4.1244617}, {"stem": "goog-rancho", "name": "Restaurante Rancho", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 10, "cuisine": "Traditional Spanish", "tip": "Hearty, rustic dishes perfect for a cozy Christmas gathering.", "must_book": false, "christmas_note": null, "lat": 40.9396218, "lng": -4.1141855}, {"stem": "goog-jeyma", "name": "Jeyma", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 5, "cuisine": "Traditional Spanish", "tip": "Known for its excellent cochinillo, a must-try for Christmas.", "must_book": true, "christmas_note": null, "lat": 40.9503982, "lng": -4.1234749}, {"stem": "goog-taurina", "name": "Mesón La Taurina", "city": "Segovia", "rating": 4.2, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Enjoy classic Segovian cuisine in a lively, traditional setting.", "must_book": false, "christmas_note": null, "lat": 40.9506816, "lng": -4.1237193}, {"stem": "goog-concepcion", "name": "La Concepción", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "A charming spot for traditional Castilian dishes during the holidays.", "must_book": false, "christmas_note": null, "lat": 40.9503996, "lng": -4.12441}, {"stem": "goog-narcea", "name": "El Narcea", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Experience authentic local flavors, perfect for a festive family meal.", "must_book": true, "christmas_note": null, "lat": 40.9497917, "lng": -4.1230028}, {"stem": "goog-campesino", "name": "El Campesino", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 12, "cuisine": "Traditional Spanish", "tip": "Rustic and hearty meals, ideal for a warm Christmas lunch.", "must_book": false, "christmas_note": null, "lat": 40.9499, "lng": -4.1232}, {"stem": "goog-portal", "name": "Restaurante El Portal", "city": "Segovia", "rating": 4.4, "price": "€€€", "walk_min": 5, "cuisine": "Modern Spanish", "tip": "Elegant dining with creative dishes, perfect for a sophisticated Christmas celebration.", "must_book": true, "christmas_note": null, "lat": 40.963871, "lng": -4.136568}, {"stem": "goog-txoko", "name": "Restaurante Txoko", "city": "Segovia", "rating": 4.5, "price": "€€", "walk_min": 6, "cuisine": "Basque Spanish", "tip": "Enjoy exquisite Basque-inspired cuisine for a unique holiday feast.", "must_book": true, "christmas_note": null, "lat": 40.9506, "lng": -4.123}, {"stem": "goog-sitio", "name": "El Sitio", "city": "Segovia", "rating": 4.4, "price": "€€", "walk_min": 6, "cuisine": "Traditional Spanish", "tip": "Enjoy classic Segovian dishes in a warm and inviting atmosphere.", "must_book": false, "christmas_note": null, "lat": 40.9497917, "lng": -4.1231}, {"stem": "goog-meson-dias", "name": "Mesón de los Días", "city": "Segovia", "rating": 4.3, "price": "€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Savor hearty, traditional meals perfect for a festive winter lunch.", "must_book": false, "christmas_note": null, "lat": 40.9478, "lng": -4.118}, {"stem": "goog-parador-segovia", "name": "Parador de Segovia", "city": "Segovia", "rating": 4.3, "price": "€€€", "walk_min": 15, "cuisine": "Traditional Castilian", "tip": "Dine with stunning views, offering a grand Christmas dining experience.", "must_book": true, "christmas_note": null, "lat": 40.9602655, "lng": -4.1101125},
+{"stem": "goog-botin", "name": "Sobrino de Botín", "city": "Madrid", "rating": 4.5, "price": "€€€", "walk_min": 10, "cuisine": "Traditional Spanish", "tip": "Dine in the world's oldest restaurant, famous for its roast suckling pig.", "must_book": true, "christmas_note": "Likely open, but book well in advance for Christmas Eve/Day.", "lat": 40.4141933, "lng": -3.7079761}, {"stem": "goog-diverxo", "name": "DiverXO", "city": "Madrid", "rating": 4.6, "price": "€€€€", "walk_min": 30, "cuisine": "Avant-garde", "tip": "Experience a unique, boundary-pushing culinary journey with a festive twist.", "must_book": true, "christmas_note": "Closed on Christmas Day and New Year's Day. Book months ahead.", "lat": 40.4578992, "lng": -3.6857765}, {"stem": "goog-casa-lucio", "name": "Casa Lucio", "city": "Madrid", "rating": 4.5, "price": "€€€", "walk_min": 12, "cuisine": "Traditional Castilian", "tip": "Savor classic Madrid dishes, especially their legendary 'huevos estrellados'.", "must_book": true, "christmas_note": "Popular for holiday meals; reserve early, especially for Christmas.", "lat": 40.4120839, "lng": -3.7096356}, {"stem": "goog-san-miguel", "name": "Mercado de San Miguel", "city": "Madrid", "rating": 4.5, "price": "€€", "walk_min": 8, "cuisine": "Tapas Market", "tip": "A vibrant gourmet market perfect for sampling diverse Spanish delicacies.", "must_book": false, "christmas_note": "Usually open, but check hours for Dec 25th and Jan 1st.", "lat": 40.4153794, "lng": -3.7089697}, {"stem": "goog-lhardy", "name": "Lhardy", "city": "Madrid", "rating": 4.3, "price": "€€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Step back in time in this historic Madrid institution, famous for its cocido.", "must_book": true, "christmas_note": "A classic Christmas lunch spot; book far in advance.", "lat": 40.4166259, "lng": -3.7013886}, {"stem": "goog-la-bola", "name": "La Bola", "city": "Madrid", "rating": 4.4, "price": "€€", "walk_min": 13, "cuisine": "Traditional Madrilenian", "tip": "Enjoy authentic cocido madrileño cooked in individual clay pots.", "must_book": true, "christmas_note": "Book ahead for their famous cocido, especially around holidays.", "lat": 40.420011, "lng": -3.71047}, {"stem": "goog-san-gines", "name": "Chocolatería San Ginés", "city": "Madrid", "rating": 4.4, "price": "€", "walk_min": 7, "cuisine": "Desserts", "tip": "Warm up with churros and chocolate, a quintessential Madrid experience.", "must_book": false, "christmas_note": "Open 24/7, a perfect late-night Christmas treat.", "lat": 40.4167385, "lng": -3.7069356}, {"stem": "goog-mallorquina", "name": "La Mallorquina", "city": "Madrid", "rating": 4.3, "price": "€", "walk_min": 7, "cuisine": "Pastries", "tip": "Indulge in delicious pastries and sweets, perfect for a festive treat.", "must_book": false, "christmas_note": "Busy during holidays for traditional Christmas sweets.", "lat": 40.416665, "lng": -3.7047477}, {"stem": "goog-estado-puro", "name": "Estado Puro", "city": "Madrid", "rating": 4.3, "price": "€€", "walk_min": 9, "cuisine": "Modern Tapas", "tip": "Creative and modern tapas in a stylish setting, great for sharing.", "must_book": true, "christmas_note": "Good for festive tapas gatherings; book for groups.", "lat": 40.414734, "lng": -3.69452}, {"stem": "goog-juana-loca", "name": "Juana la Loca", "city": "Madrid", "rating": 4.4, "price": "€€", "walk_min": 15, "cuisine": "Modern Tapas", "tip": "Innovative tapas with a creative flair, a lively atmosphere.", "must_book": true, "christmas_note": "Popular for pre-Christmas celebrations; reserve ahead.", "lat": 40.4217767, "lng": -3.6903157}, {"stem": "goog-la-latina", "name": "El Almendro", "city": "Madrid", "rating": 4.3, "price": "€€", "walk_min": 15, "cuisine": "Traditional Tapas", "tip": "Classic tapas bar in the vibrant La Latina neighborhood.", "must_book": false, "christmas_note": "Enjoy traditional tapas during the festive season.", "lat": 40.41249, "lng": -3.71004}, {"stem": "goog-cervantes", "name": "Cervecería Cervantes", "city": "Madrid", "rating": 4.3, "price": "€€", "walk_min": 10, "cuisine": "Seafood Tapas", "tip": "Excellent seafood tapas, especially their famous tortilla de patatas.", "must_book": false, "christmas_note": "A great spot for festive seafood tapas.", "lat": 40.4141903, "lng": -3.6958156}, {"stem": "goog-matritum", "name": "Matritum", "city": "Madrid", "rating": 4.5, "price": "€€", "walk_min": 12, "cuisine": "Modern Tapas", "tip": "Creative tapas with a modern twist in a cozy, intimate setting.", "must_book": true, "christmas_note": "Book in advance for a special Christmas tapas experience.", "lat": 40.4121048, "lng": -3.7092127}, {"stem": "goog-ardosa", "name": "La Ardosa", "city": "Madrid", "rating": 4.5, "price": "€€", "walk_min": 18, "cuisine": "Traditional Tapas", "tip": "Historic tavern famous for its vermouth and delicious tortilla.", "must_book": false, "christmas_note": "Enjoy classic Madrid vibes and tapas during Christmas.", "lat": 40.4237683, "lng": -3.7017596}, {"stem": "goog-viajero", "name": "El Viajero", "city": "Madrid", "rating": 4.3, "price": "€€", "walk_min": 15, "cuisine": "Tapas", "tip": "Trendy tapas bar with a rooftop terrace offering great city views.", "must_book": false, "christmas_note": "Enjoy festive drinks and tapas with a view.", "lat": 40.4116602, "lng": -3.710201}, {"stem": "goog-despiece", "name": "Despiece", "city": "Madrid", "rating": 4.5, "price": "€€", "walk_min": 25, "cuisine": "Modern Spanish", "tip": "Innovative dishes focusing on quality ingredients and creative presentation.", "must_book": true, "christmas_note": "A modern option for a festive meal; book ahead.", "lat": 40.4399301, "lng": -3.697484}, {"stem": "goog-cibeles", "name": "Cibeles Restaurante", "city": "Madrid", "rating": 4.2, "price": "€€€", "walk_min": 3, "cuisine": "International", "tip": "Elegant dining with stunning views of Cibeles fountain, perfect for a special occasion.", "must_book": true, "christmas_note": "Ideal for a sophisticated Christmas dinner with a view.", "lat": 40.4189339, "lng": -3.6921521}, {"stem": "goog-bar-cock", "name": "Bar Cock", "city": "Madrid", "rating": 4.3, "price": "€€", "walk_min": 15, "cuisine": "Cocktails & Tapas", "tip": "Iconic cocktail bar with a classic atmosphere and delicious small bites.", "must_book": false, "christmas_note": "Festive cocktails and tapas in a historic setting.", "lat": 40.419883, "lng": -3.6988065}, {"stem": "goog-freixa", "name": "Freixa Tradición", "city": "Madrid", "rating": 4.3, "price": "€€€", "walk_min": 25, "cuisine": "Catalan", "tip": "Refined Catalan cuisine in an elegant setting, a taste of Barcelona.", "must_book": true, "christmas_note": "A sophisticated choice for a festive Catalan meal.", "lat": 40.4241855, "lng": -3.6837693}, {"stem": "goog-lando", "name": "Taberna Lando", "city": "Madrid", "rating": 4.4, "price": "€€", "walk_min": 12, "cuisine": "Traditional Spanish", "tip": "Authentic tavern experience with excellent tapas and traditional dishes.", "must_book": false, "christmas_note": "Enjoy a traditional Spanish Christmas atmosphere.", "lat": 40.4118652, "lng": -3.7150612}, {"stem": "goog-lateral", "name": "Lateral Plaza Santa Ana", "city": "Madrid", "rating": 4.2, "price": "€€", "walk_min": 9, "cuisine": "Modern Tapas", "tip": "Popular spot for modern tapas in a lively square, great for people-watching.", "must_book": false, "christmas_note": "Lively atmosphere for festive tapas and drinks.", "lat": 40.4143579, "lng": -3.7011202}, {"stem": "goog-tripea", "name": "Tripea", "city": "Madrid", "rating": 4.6, "price": "€€", "walk_min": 20, "cuisine": "Fusion Tapas", "tip": "Creative fusion tapas with Asian influences, a unique culinary adventure.", "must_book": true, "christmas_note": "Book ahead for a unique and modern Christmas tapas experience.", "lat": 40.4342197, "lng": -3.7085289}, {"stem": "goog-cenador", "name": "El Cenador del Prado", "city": "Madrid", "rating": 4.5, "price": "€€€", "walk_min": 7, "cuisine": "Traditional Spanish", "tip": "Charming restaurant with a beautiful courtyard, offering traditional Spanish cuisine.", "must_book": true, "christmas_note": "A romantic setting for a special Christmas meal.", "lat": 40.414061, "lng": -3.6941469}, {"stem": "goog-pepita", "name": "Pepita Madrid", "city": "Madrid", "rating": 4.4, "price": "€€", "walk_min": 20, "cuisine": "Modern Tapas", "tip": "Stylish restaurant serving creative tapas and modern Spanish dishes.", "must_book": true, "christmas_note": "A chic option for festive tapas and modern cuisine.", "lat": 40.4274482, "lng": -3.6687806}],
+"hotels": [{"name": "Hotel Casa 1800 Sevilla", "city": "Seville", "lat": 37.3858678, "lng": -5.9909586, "formatted_address": "C. Rodrigo Caro, 6, Casco Antiguo, 41004 Sevilla, Spain"}, {"name": "Áurea Convento Capuchinos", "city": "Segovia", "lat": 40.9521141, "lng": -4.1231091, "formatted_address": "Pl. Capuchinos, 2, 40001 Segovia, Spain"}, {"name": "NH Madrid Nacional", "city": "Madrid", "lat": 40.409962, "lng": -3.692674, "formatted_address": "P.º del Prado, 48, Centro, 28014 Madrid, Spain"}, {"name": "NH Collection Palacio de Tepa", "city": "Madrid", "lat": 40.413835, "lng": -3.7016170, "formatted_address": "C. de San Sebastián, 2, Centro, 28012 Madrid, Spain"}],
+"sites": [{"name": "Real Alcázar de Sevilla", "city": "Seville", "lat": 37.3830519, "lng": -5.9902257, "formatted_address": "Casco Antiguo, 41004 Seville, Spain"}, {"name": "Catedral de Sevilla", "city": "Seville", "lat": 37.3858247, "lng": -5.9931068, "formatted_address": "Av. de la Constitución, s/n, 41004 Sevilla, Spain"}, {"name": "Plaza de España", "city": "Seville", "lat": 37.3771957, "lng": -5.9868930, "formatted_address": "Av. Isabel la Católica, 41004 Sevilla, Spain"}, {"name": "Triana Bridge", "city": "Seville", "lat": 37.3862995, "lng": -6.0024389, "formatted_address": "Puente de Isabel II, Sevilla, Spain"}, {"name": "Alcázar de Segovia", "city": "Segovia", "lat": 40.9525725, "lng": -4.1325378, "formatted_address": "Pl. Reina Victoria Eugenia, s/n, 40003 Segovia, Spain"}, {"name": "Catedral de Segovia", "city": "Segovia", "lat": 40.9502161, "lng": -4.1253059, "formatted_address": "C. Marqués del Arco, 1, 40001 Segovia, Spain"}, {"name": "Aqueduct of Segovia", "city": "Segovia", "lat": 40.9480584, "lng": -4.1178956, "formatted_address": "Pl. Azoguejo, 1, 40001 Segovia, Spain"}, {"name": "Plaza Mayor Segovia", "city": "Segovia", "lat": 40.9502583, "lng": -4.1240319, "formatted_address": "Plaza Mayor, Segovia, Spain"}, {"name": "Museo del Prado", "city": "Madrid", "lat": 40.4137818, "lng": -3.6921271, "formatted_address": "Retiro, 28014 Madrid, Spain"}, {"name": "Parque del Retiro", "city": "Madrid", "lat": 40.415258, "lng": -3.6834657, "formatted_address": "Retiro, 28009 Madrid, Spain"}, {"name": "Puerta del Sol", "city": "Madrid", "lat": 40.4169473, "lng": -3.7035285, "formatted_address": "Puerta del Sol, Centro, Madrid, Spain"}, {"name": "Plaza Mayor Madrid", "city": "Madrid", "lat": 40.4156181, "lng": -3.707023, "formatted_address": "Plaza Mayor, Centro, Madrid, Spain"}, {"name": "Gran Vía", "city": "Madrid", "lat": 40.4189329, "lng": -3.6968903, "formatted_address": "Gran Vía, Centro, Madrid, Spain"}]};
+
+const CITIES = {
+  Seville: { lat: 37.3886, lng: -5.9953, zoom: 14 },
+  Segovia: { lat: 40.9485, lng: -4.118,  zoom: 15 },
+  Madrid:  { lat: 40.4168, lng: -3.7038, zoom: 14 }
+};
+
+// ── Map init ──────────────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: true })
+  .setView([CITIES.Seville.lat, CITIES.Seville.lng], CITIES.Seville.zoom);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+// ── Custom pin icon ──────────────────────────────────────────────────────
+function pinIcon(color, glyph, ring) {
+  ring = ring || 'rgba(255,255,255,0.85)';
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='36' height='46' viewBox='0 0 36 46'>
+    <defs><filter id='s'><feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='black' flood-opacity='0.5'/></filter></defs>
+    <path filter='url(#s)' fill='${color}' stroke='${ring}' stroke-width='2'
+      d='M18 2C9 2 2 9 2 17.5c0 11 16 26 16 26s16-15 16-26C34 9 27 2 18 2z'/>
+    <text x='18' y='23' text-anchor='middle' font-size='14'
+      font-family='Segoe UI Symbol,Apple Color Emoji,sans-serif' fill='white'>${glyph}</text>
+  </svg>`;
+  return L.divIcon({
+    html: `<div style="width:36px;height:46px">${svg}</div>`,
+    className: '', iconSize: [36, 46], iconAnchor: [18, 44], popupAnchor: [0, -44]
+  });
+}
+
+const ICONS = {
+  restaurant: (mustBook) => pinIcon(mustBook ? '#b8920a' : '#d4af37', mustBook ? '★' : '🍽'),
+  hotel: pinIcon('#2a6fc9', '🏨'),
+  site: pinIcon('#c0392b', '🏛'),
+};
+
+// ── HTML builders ────────────────────────────────────────────────────────
+function esc(s){ return s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function restHtml(r) {
+  const stars = '★'.repeat(Math.round(r.rating||0)) + '☆'.repeat(5-Math.round(r.rating||0));
+  return `<div class="iw">
+    <div class="kind">Restaurant</div>
+    <div class="title">${esc(r.name)}</div>
+    <div class="pills">
+      <span class="pill cuisine">${esc(r.cuisine)}</span>
+      <span class="pill price">${esc(r.price)}</span>
+      <span class="pill rating">${stars} ${r.rating}</span>
+      <span class="pill walk">🚶 ${r.walk_min} min</span>
+    </div>
+    ${r.must_book ? '<div class="book-now">★ BOOK NOW</div>' : ''}
+    <div class="tip">${esc(r.tip)}</div>
+    ${r.christmas_note ? `<div class="xmas">${esc(r.christmas_note)}</div>` : ''}
+  </div>`;
+}
+
+function hotelHtml(h) {
+  return `<div class="iw">
+    <div class="kind">Hotel · Your stay</div>
+    <div class="title">${esc(h.name)}</div>
+    <div class="tip">${esc(h.formatted_address||'')}</div>
+  </div>`;
+}
+
+function siteHtml(s) {
+  return `<div class="iw">
+    <div class="kind">Key Site</div>
+    <div class="title">${esc(s.name)}</div>
+    <div class="tip">${esc(s.formatted_address||'')}</div>
+  </div>`;
+}
+
+// ── Build layers ──────────────────────────────────────────────────────────
+const layers = { Seville: [], Segovia: [], Madrid: [] };
+
+['Seville','Segovia','Madrid'].forEach(city => {
+  const cityLayers = [];
+
+  DATA.restaurants.filter(r => r.city === city && r.lat).forEach(r => {
+    const m = L.marker([r.lat, r.lng], { icon: ICONS.restaurant(r.must_book) })
+      .bindPopup(restHtml(r), { maxWidth: 290, className: '' });
+    cityLayers.push(m);
+  });
+
+  DATA.hotels.filter(h => h.city === city && h.lat).forEach(h => {
+    const m = L.marker([h.lat, h.lng], { icon: ICONS.hotel, zIndexOffset: 1000 })
+      .bindPopup(hotelHtml(h), { maxWidth: 290 });
+    cityLayers.push(m);
+  });
+
+  DATA.sites.filter(s => s.city === city && s.lat).forEach(s => {
+    const m = L.marker([s.lat, s.lng], { icon: ICONS.site })
+      .bindPopup(siteHtml(s), { maxWidth: 290 });
+    cityLayers.push(m);
+  });
+
+  layers[city] = cityLayers;
+});
+
+// ── City switching ────────────────────────────────────────────────────────
+let currentCity = 'Seville';
+let activeLayers = [];
+
+function showCity(city) {
+  activeLayers.forEach(m => map.removeLayer(m));
+  activeLayers = layers[city];
+  activeLayers.forEach(m => m.addTo(map));
+  const c = CITIES[city];
+  map.setView([c.lat, c.lng], c.zoom, { animate: true, duration: 0.6 });
+  currentCity = city;
+}
+
+function switchCity(city, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  showCity(city);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+showCity('Seville');
+</script>
+</body>
+</html>
