@@ -109,6 +109,17 @@
   .iw .xmas::before { content: "🎄 "; }
   .iw .out-note { margin-top: 7px; font-size: 11px; color: rgba(240,199,94,0.7); font-style: italic; }
 
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    header { padding: 10px 14px 8px; }
+    header h1 { font-size: 17px; }
+    header .sub { font-size: 11px; }
+    .tabs { padding: 0; }
+    .tab { flex: 1; text-align: center; padding: 14px 8px; font-size: 11px; letter-spacing: 0.5px; }
+    .legend { display: none; }
+    .iw { width: min(260px, calc(90vw - 40px)); }
+  }
+
   /* Override Leaflet popup chrome */
   .leaflet-popup-content-wrapper {
     background: var(--navy) !important;
