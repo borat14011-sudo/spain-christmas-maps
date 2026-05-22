@@ -443,6 +443,7 @@ function buildLayers(){
       chunkedLoading: true,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
+      removeOutsideVisibleBounds: false,
       iconCreateFunction(cluster){
         const n=cluster.getChildCount();
         const size = n < 10 ? 38 : n < 25 ? 44 : 52;
@@ -454,7 +455,7 @@ function buildLayers(){
     });
     RESTAURANTS.filter(r=>r.city===city&&r.lat).forEach(r=>{
       const m = L.marker([r.lat,r.lng],{icon:ICONS.restaurant(r.must_book)})
-        .bindPopup(restPopup(r),{maxWidth:320, minWidth:260});
+        .bindPopup(restPopup(r),{maxWidth:320, minWidth:260, autoClose:false, closeOnClick:false});
       bindPopupTapGuard(m);
       m._restStem = r.stem;
       m._city = city;
@@ -466,7 +467,7 @@ function buildLayers(){
 
     const hl = L.layerGroup();
     HOTELS.filter(h=>h.city===city&&h.lat).forEach(h=>{
-      const m = L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300});
+      const m = L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300, autoClose:false, closeOnClick:false});
       bindPopupTapGuard(m);
       m.addTo(hl);
     });
@@ -474,7 +475,7 @@ function buildLayers(){
 
     const sl = L.layerGroup();
     SITES.filter(s=>s.city===city&&s.lat).forEach(s=>{
-      const m = L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300});
+      const m = L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300, autoClose:false, closeOnClick:false});
       bindPopupTapGuard(m);
       m.addTo(sl);
     });
