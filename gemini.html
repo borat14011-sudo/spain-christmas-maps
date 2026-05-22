@@ -306,7 +306,19 @@ let siteLayers = {};
 let focusedStem = null;
 
 // ── Map init ──────────────────────────────────────────────────────────────
-const map = L.map('map', {zoomControl:true}).setView([37.3891,-5.9845],14);
+const map = L.map('map', {zoomControl:true, closePopupOnClick:false}).setView([37.3891,-5.9845],14);
+
+// Stop taps inside popups from bubbling to the map (mobile closes popup otherwise)
+function bindPopupTapGuard(marker){
+  marker.on('popupopen', function(e){
+    const el = e.popup.getElement();
+    if(el){
+      L.DomEvent.disableClickPropagation(el);
+      L.DomEvent.disableScrollPropagation(el);
+    }
+  });
+  return marker;
+}
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
   attribution:'© <a href="https://osm.org/copyright">OpenStreetMap</a>',
   maxZoom:19
@@ -443,6 +455,7 @@ function buildLayers(){
     RESTAURANTS.filter(r=>r.city===city&&r.lat).forEach(r=>{
       const m = L.marker([r.lat,r.lng],{icon:ICONS.restaurant(r.must_book)})
         .bindPopup(restPopup(r),{maxWidth:320, minWidth:260});
+      bindPopupTapGuard(m);
       m._restStem = r.stem;
       m._city = city;
       m._inCluster = true;
@@ -453,13 +466,17 @@ function buildLayers(){
 
     const hl = L.layerGroup();
     HOTELS.filter(h=>h.city===city&&h.lat).forEach(h=>{
-      L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300}).addTo(hl);
+      const m = L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300});
+      bindPopupTapGuard(m);
+      m.addTo(hl);
     });
     hotelLayers[city] = hl;
 
     const sl = L.layerGroup();
     SITES.filter(s=>s.city===city&&s.lat).forEach(s=>{
-      L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300}).addTo(sl);
+      const m = L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300});
+      bindPopupTapGuard(m);
+      m.addTo(sl);
     });
     siteLayers[city] = sl;
   });
