@@ -455,7 +455,7 @@ function buildLayers(){
     });
     RESTAURANTS.filter(r=>r.city===city&&r.lat).forEach(r=>{
       const m = L.marker([r.lat,r.lng],{icon:ICONS.restaurant(r.must_book)})
-        .bindPopup(restPopup(r),{maxWidth:320, minWidth:260, autoClose:false, closeOnClick:false});
+        .bindPopup(restPopup(r),{maxWidth:320, minWidth:260, autoClose:false, closeOnClick:false, keepInView:true});
       bindPopupTapGuard(m);
       m._restStem = r.stem;
       m._city = city;
@@ -467,7 +467,7 @@ function buildLayers(){
 
     const hl = L.layerGroup();
     HOTELS.filter(h=>h.city===city&&h.lat).forEach(h=>{
-      const m = L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300, autoClose:false, closeOnClick:false});
+      const m = L.marker([h.lat,h.lng],{icon:ICONS.hotel}).bindPopup(hotelPopup(h),{maxWidth:300, autoClose:false, closeOnClick:false, keepInView:true});
       bindPopupTapGuard(m);
       m.addTo(hl);
     });
@@ -475,7 +475,7 @@ function buildLayers(){
 
     const sl = L.layerGroup();
     SITES.filter(s=>s.city===city&&s.lat).forEach(s=>{
-      const m = L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300, autoClose:false, closeOnClick:false});
+      const m = L.marker([s.lat,s.lng],{icon:ICONS.site}).bindPopup(sitePopup(s),{maxWidth:300, autoClose:false, closeOnClick:false, keepInView:true});
       bindPopupTapGuard(m);
       m.addTo(sl);
     });
@@ -535,10 +535,16 @@ function getFiltered(){
 function syncMarkers(){
   const cg = restaurantLayers[currentCity];
   if(!cg) return;
+  // Don't yank the marker for a currently-open popup — that would close it.
+  let openStem = null;
+  for(const stem in markerMap){
+    const m = markerMap[stem] && markerMap[stem].marker;
+    if(m && m.isPopupOpen && m.isPopupOpen()){ openStem = stem; break; }
+  }
   RESTAURANTS.filter(r=>r.city===currentCity&&r.lat).forEach(r=>{
     const entry = markerMap[r.stem];
     if(!entry) return;
-    const should = passesFilter(r);
+    const should = passesFilter(r) || r.stem === openStem;
     if(should && !entry.marker._inCluster){
       cg.addLayer(entry.marker);
       entry.marker._inCluster = true;

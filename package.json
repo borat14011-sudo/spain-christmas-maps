@@ -1,0 +1,11 @@
+{
+  "name": "spain-christmas-maps",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:popup": "node popup_test.js"
+  },
+  "devDependencies": {
+    "playwright": "*"
+  }
+}
